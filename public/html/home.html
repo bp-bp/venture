@@ -1,0 +1,36 @@
+<html>
+<head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<script type = "text/javascript" src = "../js/angular.min.js"></script>
+	<script type = "text/javascript" src = "../js/angular-resource.min.js"></script>
+	<script type = "text/javascript" src = "../js/angular-route.min.js"></script>
+	
+	<script type = "text/javascript" src = "../js/venture.js"></script>
+	<script type = "text/javascript" src = "../js/ng_services/id_svc.js"></script>
+	<script type = "text/javascript" src = "../js/ng_services/current_svc.js"></script>
+	<script type = "text/javascript" src = "../js/ng_services/users_svc.js"></script>
+	<script type = "text/javascript" src = "../js/ng_services/pages_svc.js"></script>
+	
+	<script type = "text/javascript" src = "../js/ng_controllers/menu_ctrl.js"></script>
+	<script type = "text/javascript" src = "../js/ng_controllers/login_ctrl.js"></script>
+	<script type = "text/javascript" src = "../js/ng_controllers/story_ctrl.js"></script>
+	<script type = "text/javascript" src = "../js/ng_controllers/page_ctrl.js"></script>
+	<script type = "text/javascript" src = "../js/ng_controllers/read_ctrl.js"></script>
+	<script type = "text/javascript" src = "../js/ng_controllers/popup_ctrl.js"></script>
+	<script type = "text/javascript" src = "../js/ng_controllers/drop_down_ctrl.js"></script>
+	
+	<link rel = "stylehseet" href = "../css/normalize.css">
+	<link rel = "stylesheet" href = "../css/skeleton.css">
+	<link rel = "stylesheet" href = "../css/venture.css">
+</head>
+
+<body ng-app = "app">
+	<venture-menu></venture-menu>
+	<!--<venture-login></venture-login>-->
+	<!--<venture-main></venture-main>-->
+	<div class = "tall" ng-view></div>
+</body>
+</html>

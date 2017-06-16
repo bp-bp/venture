@@ -1,0 +1,191 @@
+setting up local strategy for signup...
+- figure out how to set _id field to the uuid we fetched to the front-end
+- figure out best way to create user, related to the above. _id is not one of the fields we can pass to create
+	the localstrategy. should I be creating a localstrategy to sign the user up? or just do my own route,
+	create the user, then req.login() or something?
+*****
+skipped localstrategy for signup. 
+login almost working -- error happening between console.logs in localstrategy definition
+	and passport.authenticate callback in routes
+*****
+login/logout is working! 
+maybe think about handling 401's like last version
+*****
+working on stories, front-end only so far
+sort of having some fun with media queries for story editor... currently a mess but
+maybe on the right track
+*****
+pages saving/loading almost complete... 3 pages saved, 3 options. All is coming back right-looking
+	except for 2nd page is 1st page repeated. Results look right as they come back on server. wtf. X
+fuck yeah working now
+*****
+lots of stuff working now... was fiddling with shorter ids, not working right. 
+getting duplicate key errors... hashids not working? think about just incrementing
+some number and using base64 of that number as id.
+*****
+forget about ids for now
+working story_id and page_id into url query string for read controller... currently a mess. stopping it from reloading
+	on changing the query string, but that keeps it from loading the next page... disconnect currently between 
+	setting the query string in some places vs the parameter. check if routeparams are same as query?
+*****
+progress getting story (still need to replace page calls to use routeparams)...
+server is fetching page? not sure if a monkeyed-around-with ids issue or something else
+*****
+ok it's working now, BUT back/forward buttons do not refresh page. 
+	caused by reloadOnSearch = false? 
+	look into allowing the thing to refresh on search... have to set initial params on first load...
+make it decide what to do purely off routeparams
+*****
+read controller is working as expected now I think... not working PURELY off routeparams but as expected.
+look it over at some point.
+working now on user permissions... 
+	implemented public_view
+*****
+locking plan:
+	lock should be an attribute of the page itself.
+	query will look for "unlocked" attribute of lock object, or expired timestamp, either way
+	and only set lock if it gets something back -- meaning it will only get result if
+	page is available for locking.
+*****
+in the middle of implementing locks, getting a weird error using $or...
+*****
+got it sort of stubbed in. build from here and actually make it work -- also do front-end
+*****
+before had just a lock get/request. Not sure what use I have for that by itself, now building request that fetches page with a lock
+working on failure callbacks in data_calls
+*****
+working on a way to use the page controller for branch editing as well as whole-story editing, but still failing to get a lock
+	on an already-locked page...
+*****
+locks handled, now working on making page controller work as expected in branch_edit mode.
+*****
+does work as expected in branch_edit mode, but need to ensure that branch_edit can only be invoked
+	on leaves (childless pages/options)
+also need to work out how branch editing will begin... can you edit from a page or only from an option to a 
+blank page? The latter, I think. Some stuff will need to be re-written a bit.
+*****
+having an issue with read_page in data calls... why is code around/after 515 not happening? trying to handle situation where
+	no page exists.
+*****
+fixed the above... having an issue with read controller, turn_page() is causing page to get loaded twice, once
+	in the function and again when the whole controller reloads. work on this before continuing with
+	found_page = false
+*****
+the above is good enough for now... will need to fix read controller later on, for now back and forward buttons dont work
+	because we had to set reloadOnSearch to false.
+Now re-implement branch_edit, same as before but put the lock on the option leading nowhere rather than on a page.
+See notes in populate_pages function for next steps
+*****
+nearly done converting branch_edit from page to option, not gettin option in data call despite defaults. 
+try re-creating data? what am I not understanding about the defaults?
+once I can get something from data call, finish front-end in page controller.
+*****
+branch_edit from options is actually sort of working now. 
+worked around issue with refresh_sorted_page_list with no root_page present with hacky hack hack. 
+	preventing page list on page editing page to work. fixorz
+*****
+fixed the above. branch edit fully working now. huzzah. 
+need to test locks...
+all sorts of ancillary stuff needs doing too.
+*****
+reworked branch edit call to happen (appropriately) in the read controller before changing path to /pages
+tested locks with different user -- works, and unlocks after appropriate time has passed. 
+working on ancillary stuff.
+*****
+fixing up branch edit nicely I think. 
+	$interval working, and cancelled on logout, need to cancel on save/exit branch edit
+	implemented unlock, not sure I'm actually calling it, check for that
+*****
+above stuff seems done. still ancillary front-end stuff to do, but there's some backend stuff I should revisit too
+	ancestor path, I think I'm going to want it after all.
+		let's do an integer counter kept with the story, saved in the page as a zero-padded string to, say, 5 places? 
+		sets a hard limit of 99,999 pages in a story, p sure that'll be fine
+*****
+doing it... getting and setting the short_ids in pages (just as a number, mind you) is working
+need to make it into zero-padded string and correctly build/set ancestor_path from it.
+	take into account branch_edit here, need to pass along parent ancestor_path...
+long view: need to find a way to flag pages as 'malformed' somehow if either gen_id or get_short_page_id fail.
+*****
+zero-padded string working, now try redoing ancestor path
+*****
+prepping for ancestor_path... got the parent page full obj as "source_page" stuck onto option returned from 
+	branch_edit_option. This will be necessary to build ancestor_path in the case of a branch_edit.
+*****
+middle of ancestor_path work, more complications than expected. See notes around ln 750 in venture.js for plan and next steps.
+*****
+ancestor_path is muddled mess, probably need to rip out and re-do
+basic idea is that each page should return an ancestor_path promise --
+	insta-resolves to ancestor_path if populated, or
+	if not populated, returns a promise that will resolve when it is populated...
+	this should work off short_id? and success callback of short_id promise should call for the parent's ancestor_path?
+	I think this is more or less what I have (the beginnings of, anyway). check and think through.
+*****
+making progress maybe... none of the saved pages have an ancestor path, so I'm getting errors.
+whole thing feels a little janky, should work though
+*****
+seems like it's working as intended! Have not yet tested using a timeout on the server -- try that
+switched ids from uuids to objectids. Seems to work nicely.
+*****
+still should test that timeout on server above... otherwise things seem to be working. 
+fixed read controller -- works with back/forward browser buttons again.
+*****
+reworked branch_edit flow for some reason... got it working with ancestor path. double-check values are set right.
+*****
+absolute beginning of getting page descendants working (fetched from server)
+*****
+added utility to fix populated options, not quite fully tested with optional argument
+added get_descendants option type, not tested at all
+*****
+fixed that utility... looks like get_descendants works as expected with both options
+*****
+gotten started on popup and delete option...
+	finish
+	think about making picker_item component...
+*****
+delete option with descendants seems to be WORKING except it is not deleting original option lol
+	fix this
+	also remember to fix original option's parent page's option_ids property
+*****
+fixed the above
+still need to remove reference from parent page... having trouble manipulating object returned from query,
+	see ln 1044ish
+*****
+delete option seems to be completely working
+*****
+fixed back/forward issue on read
+now need:
+	global message/error section in menu bar
+	email password reset
+	drop-down buttons -- X dropdown is implemented, think I should use small icon buttons instead
+	re-work story browse?
+	fetch limited number of stories by default
+	page delete - big thing X
+	page branch edit? - big thing
+*****
+working on drop-down... passed-in array and click events are working
+make it look right
+*****
+working on if_condition for dropdown items. see ln 23 of drop_down_ctrl. users service logged_in is returning false...
+*****
+fixed above if_condition issue with .bind() on if_condition callback...
+implementing page delete now, looks more or less finished except typing in the data_calls function. 
+*****
+pretty sure page delete is finished, double-check
+made login panel into a component to include in more than one place.
+went through data_calls and marked places where user/permissions check is needed.
+still need to:
+	- make login_panel only position absolute in drop down from menu...
+	- add buttons/ui to story browse screen
+	- rework buttons/ui everywhere else, currently shitty
+	- do that global message/error section in menu bar
+	- maybe add a "what is this?" that displays on story browse page on first load?
+	- what else? once user/permission checks are in place, basic functionality is all there. maybe cosmetic tweaks/cleanup.
+*****
+read_page is not pulling a story in permissions check... returning nothing. look into it.
+*****
+fixed the above
+got two users, "test_user" and "another_user". currently implementing loading only current user's stories when
+	loading all stories "for_edit". seems to be respecting this for "another_user", but not for "test_user"? 
+	seeing only another_user's stories when loading as him, but seeing everybody's stories when loading as test_user??
+*****
+no it wasn't, it was working all along

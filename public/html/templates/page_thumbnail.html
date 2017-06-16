@@ -1,0 +1,14 @@
+<article 	class = "story_select"
+			ng-class = "{'selected_story': v_thumb.current.page._id === v_thumb.page._id}"
+			ng-click = "v_thumb.current.page = v_thumb.page">
+	<header>
+		<p class = "story_title ib">{{v_thumb.page.disp_title()}}</p>
+		<strong ng-if = "page.modified" class = "u-pull-right">*</strong>
+	</header>
+	<p class = "story_description">{{v_thumb.page.disp_text()}}</p>
+	
+	<div ng-repeat = "option in v_thumb.page.get_options()">
+		<!-- here we go -->
+		<page-thumbnail ng-if = "option.get_target_page()" page = "option.get_target_page()"></page_thumbnail>
+	</div>
+</article>

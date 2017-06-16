@@ -1,0 +1,8 @@
+<div ng-click = "dd.toggle()" class = "dropdown_container">
+	~
+	<div class = "dropdown_panel" ng-show = "dd.expanded">
+		<div ng-repeat = "item in dd.items" ng-show = "item.if_condition()" ng-click = "item.callback(item.param)">
+			{{item.display_text}}
+		</div>
+	</div>
+</div>
