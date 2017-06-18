@@ -127,9 +127,6 @@ fieldset legend {
 	margin-bottom: 1rem;
 	
 }
-.panel-head {
-
-}
 .nav-bar a, .nav-bar .a {
 	margin-right: 2rem;
 	cursor: pointer;
@@ -138,7 +135,6 @@ fieldset legend {
 	margin-right: 0;
 }
 
-/* stories view */
 .center-column {
 	width: 100%;
 	margin: 0 auto;
@@ -146,6 +142,28 @@ fieldset legend {
 @media (min-width: 550px) {
 	.center-column {
 		width: 50%;
+	}
+}
+
+.left-view {
+	margin-bottom: 1.25rem;
+}
+.right-view {
+
+}
+@media (min-width: 550px) {
+	.wrapper {
+		width: 90%;
+		padding: 0;
+	}
+	.left-view {
+		width: 30%;
+		float: left;
+	}
+	.right-view {
+		width: 68%;
+		float: left;
+		margin-left: 2%;
 	}
 }
 
