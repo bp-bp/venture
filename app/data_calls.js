@@ -27,16 +27,11 @@ function fix_populated_options(pages, accum_obj) {
 		throw new Error("fix_populated_options was passed a non-array");
 	}
 	
-	console.log("pages: ", pages);
-	console.log("accum_obj: ", accum_obj);
-	
 	var q = accum_obj || {pages: [], options: []};
 	console.log("q: ", q);
-	//q.pages.push.apply(q.pages, pages);
 	
 	var p, o;
 	q.pages = q.pages.concat(pages);
-	//console.log("q.pages: ", q.pages);
 	for (p = 0; p < q.pages.length; p++) {
 		for (o = 0; o < q.pages[p].option_ids.length; o++) {
 			q.options.push(q.pages[p].option_ids[o]);
@@ -73,6 +68,7 @@ module.exports.test = function(req, res) {
 module.exports.get_stories = function(req, res) {
 	// grab our current user_id
 	var user_id = req.user && req.user._id ? req.user._id : null;
+	// check if we're loading with the possibility of editing them or not
 	var for_edit = false;
 	if (req.query.for_edit && req.query.for_edit === "true") {
 		for_edit = true;
@@ -117,10 +113,10 @@ function get_all_stories(user_id, for_edit) {
 	// permissions
 	if (user_id) {
 		// distinguish between loading stories with the intention of editing them vs just viewing/reading
-		// when loading for edit, return only stories created by the current user
+		// when loading for edit, return only stories created by the current user and where public_edit is false
 		if (for_edit) {
 			console.log("running for_edit");
-			query_obj = {created_by_user: user_id};
+			query_obj = {created_by_user: user_id, _public_edit: false};
 		}
 		else {
 			query_obj = {$or: [{created_by_user: user_id}, {_public_view: true}]};

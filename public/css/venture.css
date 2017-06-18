@@ -1,5 +1,16 @@
+/********** global page stuff **********/
+
 html, body {
 	min-height: 100%;
+	line-height: 1.25;
+	box-sizing: border-box;
+}
+*, *:before, *:after {
+	box-sizing: inherit;
+}
+
+* {
+	box-sizing: border-box;
 }
 
 body {
@@ -8,320 +19,190 @@ body {
 	min-height: 100%;
 }
 
-button {
-	color: #8c8c8c;
+/********** global element styles **********/
+button, .button {
+	color: #b4b4b4;
+	border: 1px solid #8c8c8c;
+	border-radius: 3px;
+	background-color: transparent;
+	text-align: center;
+	padding: 0.4rem;
+	text-transform: uppercase;
+	font-size: .9rem;
 }
 button:hover {
 	color: #b4b4b4;
 }
 
-nav, .nav, .pagination, .carousel, .panel-title a { 
-	cursor: pointer; 
+input {
+	border-radius: 3px;
+	border: 1px solid #8c8c8c;
+	color: black;
+	height: 1.7rem;
 }
 
-.nav {
-	cursor: pointer;
+h1, h2, h3, h4, h5, h6 {
+	margin: 0;
+	font-weight: bold;
 }
+h1 {font-size: 4rem;}
+h2 {font-size: 3.4rem;}
+h3 {font-size: 2.8rem;}
+h4 {font-size: 2.2rem;}
+h5 {font-size: 1.6rem;}
+h6 {font-size: 1rem;}
 
-.v_menu {
-	margin-bottom: 20px;
-}
-
-.v_menu a {
+a {
 	text-decoration: none;
+	color: #8c8c8c;
 }
 
+fieldset {
+	border: none;
+	padding: .5rem;
+	margin: 0;
+}
+fieldset > .field {
+	display: table-row;
+	padding: 2rem;
+}
+.field > * {
+	display: table-cell;
+	padding: 0 .5rem 0 0;
+	margin: .5rem 0 0 0;
+}
+fieldset legend {
+	font-weight: bold;
+	font-size: 1.1rem;
+	/*margin-bottom: .5rem;*/
+}
+
+/********** TEST TEST TEST **********/
+.red {
+	border: 1px solid #f44e42;
+}
+.green {
+	border: 1px solid #89f93e;
+}
+.blue {
+	border: 1px solid #3b7ef9;
+}
+/********** TEST TEST TEST **********/
+
+
+/********** structure **********/
+.wrapper {
+	position: relative;
+	width: 100%;
+	margin: 0 auto;
+	padding: 0;
+}
 .panel {
 	background-color: #222222;
 	border-top: 3px solid #5e5e5e;
-	min-height: 6rem;
-	margin-bottom: 20px;
+	padding: 0.25rem;
 }
+.panel-head {
+	padding: 0.25rem;
+}
+.panel-head-title {
 
-.navbar_item {
-	padding: 0 20px;
-	color: #8c8c8c;
-	display: inline-block;
-	cursor: pointer;
-	position: relative;
 }
-.navbar_item:hover {
-	color: #b4b4b4;
-	background-color: #404040;
-}
-
-/* login dropdown */
-.login_panel_container .login_panel {
-	position: absolute;
-	margin-top: 7px;
-	right: 0;
-}
-.login_panel {
-	padding: 5px 20px;
-	width: 20rem;
-	margin-bottom: 20px;
-	z-index: 10;
-	background-color: #404040;
-}
-
-/* story stuff */
-
-/* story editor */
-.edit_panel {
-	padding: 0 20px;
-}
-
-input.editor_title {
-	width: 90%;
-}
-@media (min-width: 750px) {
-	input.editor_title {
-		width: 60%;
-		min-width: 400px;
-	}
-}
-
-textarea.editor_text {
-	width: 90%;
-	height: 12rem;
-}
-@media (min-width: 750px) {
-	textarea.editor_text {
-		width: 60%;
-		min-width: 400px;
-		height: 12rem;
-	}
-}
-
-
-/* story/page selector display stuff */
-/* am i using this one? */
-.picker_container {
-	max-height: 50%;
-	overflow-y: scroll;
-}
-@media (min-width: 550px) {
-	.picker_container {
-		max-height: none;
-		overflow-y: auto;
-		min-height: 6rem;
-	}
-}
-.picker_item {
-	min-height: 4.5rem;
-	max-height: 4.5rem;
-	background-color: #030202;
-	padding: 0 7px;
-	margin-bottom: 0.5rem;
-	box-sizing: border-box;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-.picker_item .picker_title {
-	font-weight: bold;
-	margin-bottom: .5rem;
-}
-.picker_item .picker_text {
-	font-size: 80%;
-	font-style: italic;
-	padding: 0 7px;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-.picker_selected {
-	background-color: #3d3d3d;
-}
-.v_story_user .picker_selected {
-	min-height: 12rem;
-}
-
-.button_row {
+.panel-head-buttons {
 	text-align: center;
 }
 @media (min-width: 550px) {
-	.button_row {
-		text-align: left;
+	.panel-head-title {
+		display: inline-block;
 	}
-	.button_row > button {
+	.panel-head-buttons {
 		float: right;
+		display: inline-block;
 	}
 }
 
-/* story viewer stuff */
-/*.read_button:hover span {
-	display: none;
-}
-.read_button:hover:before {
-	content: "Read";
-}
-
-.edit_button:hover span {
-	display: none;
-}
-.edit_button:hover:before {
-	content: "Edit";
-}
-
-.save_button:hover span {
-	display: none;
-}
-.save_button:hover:before {
-	content: "Save";
-}
-
-.exit_button:hover span {
-	display: none;
-}
-.exit_button:hover:before {
-	content: "Finished";
-}
-*/
-/*.story_view_body h6 {
-	margin-right: 3rem;
-}*/
-/*
-.story_view_body h6:last-child {
-	margin-left: 3rem;
-}
-*/
-
-/* pages editor */
-/*.main_page_editor #page_title {
-	width: 40rem;
-}
-.main_page_editor #page_text {
-	width: 60rem;
-}*/
-
-.options_list > article{
-	display: inline-block;
-	width: 20rem;
-	margin: 1rem 1rem 1rem 0;
+/* top of page */
+.page-head {
+	padding: 0.25rem 1.25rem;
+	margin-bottom: 1rem;
 	
 }
-.options_list > article textarea {
-	width: inherit;
-}
-.options_list button {
-	/*width: 2rem;*/
-	height: initial;
-	line-height: initial;
-	white-space: normal;
-	vertical-align: middle;
-}
+.panel-head {
 
-/* reader stuff */
-.reader_text article {
-	padding: 10px 20px;
 }
-ul.reader_options {
-	list-style: none;
-}
-.reader_options article {
+.nav-bar a, .nav-bar .a {
+	margin-right: 2rem;
 	cursor: pointer;
-	border-radius: 4px;
-	padding: 20px;
 }
-.reader_options .panel {
-	border-top: none;
+.nav-bar a:last-child, .nav-bar .a:last-child {
+	margin-right: 0;
 }
 
-/* popup overlay */
-.popup_container {
-	position: absolute;
-	left: 15%;
-	right: 15%;
-	top: 15%;
-	min-height: 15%;
-	z-index: 10;
-	background-color: #222222;
-	border: 3px solid #5e5e5e;
-	text-align: center;
+/* stories view */
+.center-column {
+	width: 100%;
+	margin: 0 auto;
 }
-.popup_container .picker_item {
-	/*text-align: initial;*/
-	width: 75%;
-}
-.popup_container hr {
-	margin-top: 1.5rem;
-	margin-bottom: .5rem;
-	border-width: 0;
-	border-top: 1px solid #5e5e5e; 
+@media (min-width: 550px) {
+	.center-column {
+		width: 50%;
+	}
 }
 
-
-/* utility stuff */
-.tag {
-	border: 1px solid red;
-}
-
-.ib {
-	display: inline-block;
-}
-
-.nav_arrow {
-	font-size: 3.6rem;
-	height: inherit;
-}
-.nav_button_row {
-	display: table;
-}
-.nav_button_row .left {
-	display: table-cell;
-	vertical-align: middle;
-}
-.nav_button_row .right {
-	display: table-cell;
-	vertical-align: middle;
-}
-
-.nothing_here {
-	padding: 1rem;
-	text-align: center;
-}
-
-.nothing_here a {
-	color: #8c8c8c;
-}
-
-.dropdown_container {
+/********** ui classes **********/
+/* login-panel will be wrapped in login-panel-container in menu bar drop-down version only */
+.login-panel-container {
 	position: relative;
-	cursor: pointer;
-	background-color: #404040;
-	padding: 0 1rem;
 }
-.dropdown_panel {
+.login-panel-container .login-panel {
 	position: absolute;
 	right: 0;
+	top: 1.25rem;
+}
+.login-panel {
+	padding: .25rem;
+	width: 20rem;
 	z-index: 10;
 	background-color: #404040;
-	width: 20rem;
-	padding: .5rem 1rem;
 }
 
-/* same as picker_selected above, replace maybe */
-.highlight {
-	background-color: #3d3d3d;
+/* pickers */
+.picker-container {
+	padding: 1.5rem;
 }
-
-.center {
+.picker-container * {
+	cursor: default;
+}
+.picker-item {
+	border: 1px solid transparent;
+	margin-bottom: .25rem;
+	background-color: #030202;;
+}
+.picker-text {
+	font-size: .8rem;
+	font-style: italic;
+	padding: 0 .5rem;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.picker-selected {
+	border: 1px solid #b4b4b4;
+	background-color: #222222;
+}
+/********** utilities **********/
+.spacer-bottom {
+	margin-bottom: 1.25rem;
+}
+.spacer-top {
+	margin-top: 1.25rem;
+}
+.center-contents {
 	text-align: center;
 }
-
-.big_message_container {
-	padding: 3rem;
-	min-height: 26rem;
-	text-align: center;
+.float-right {
+	float: right;
 }
-
-a {
-	color: #8c8c8c;
-	text-decoration: none;
-}
-
-.button,button {
-	padding: 0 10px;
-	margin: 0 10px;
+.ib {
+	display: inline-block;
 }

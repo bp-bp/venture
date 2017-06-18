@@ -1,20 +1,16 @@
-<div class = "container v_menu panel">
-	<h2>Venture</h2>
-	<nav>
+<div class = "page-head panel">
+	<h2 class = "spacer-bottom">Venture</h2>
+	<nav class = "nav-bar">
 		<a class = "navbar_item" ng-click = "v_menu.echo_data()">echo</a>
 		<a class = "navbar_item" href = "#/stories">stories</a>
 		<a class = "navbar_item" href = "#/stories/user">my stories</a>
 		
-		<span ng-click = "v_menu.toggle_login_expand()" class = "u-pull-right" >
-			{{v_menu.users.logged_in() ? v_menu.users.user.username : "not logged in"}}
-			<venture-login class = "login_panel_container" ng-if = "v_menu.login_expanded"></venture-login>
-		</span>
+		<!-- one obnoxiously long line to avoid nasty flicker -->
+		<span ng-click = "v_menu.toggle_login_expand()" class = "float-right a">{{v_menu.users.logged_in() ? v_menu.users.user.username : "not logged in"}}<venture-login class = "login-panel-container" ng-if = "v_menu.login_expanded"></venture-login></span>
 	</nav>
-	
-	<!-- login drop-down panel -->
-	
 	
 	
 </div>
 
+<!-- popup lives here, hidden until needed -->
 <venture-popup></venture-popup>
