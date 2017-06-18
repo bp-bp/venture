@@ -1,6 +1,9 @@
 <div class = "wrapper" ng-if = "v_story.users.logged_in()">
+
 	<!-- left/top control panel -->
 	<div class = "left-view panel">
+		
+		<!-- left/top panel header -->
 		<header class = "panel-head">
 			<h5 class = "panel-head-title">Stories</h5>
 			<div class = "panel-head-buttons">
@@ -8,11 +11,41 @@
 						ng-click = "v_story.create_new_story()">Create Story</button>
 			</div>
 		</header>
+		
+		<!-- story picker -->
+		<section class = "picker-container">
+			<article 			class = "picker-item"
+								ng-class = "{'picker-selected': v_story.current.story._id === story._id}"
+								ng-repeat = "story in v_story.pages.stories"
+								ng-click = "v_story.current.story = story">
+				<header class = "panel-head">
+					<h6 class = "panel-head-title">{{story.disp_title()}}</h6>
+					<strong ng-if = "story.modified" class = "float-right">*</strong>
+				</header>
+				<p class = "picker-text">{{story.disp_description()}}</p>
+			</article>
+		</section>
 	</div>
 	
 	<!-- right/bottom editor panel -->
 	<div class = "right-view panel">
-		right<!-- placeholder -->
+		<!-- story viewer, view mode -->
+		<section class = "" ng-if = "v_story.story_mode === 'view' && v_story.current.story">
+			<!-- story viewer title -->
+			<header class = "panel-head">
+				<h6 class = "panel-head-title">{{v_story.current.story.disp_title()}}</h6>
+				<div class = "panel-head-buttons">
+					<button class = ""
+							ng-click = "v_story.read_story()"
+							title = "Read Story">Read</button>
+					<button class = ""
+							ng-if = "v_story.current.story.my_story"
+							ng-click = "v_story.set_story_mode('edit')"
+							title = "Edit Story">Edit Story</button>
+				</div>
+				Created by: <strong>{{v_story.current.story.created_by}}</strong>
+			</header>
+		</section>
 	</div>
 
 </div>
