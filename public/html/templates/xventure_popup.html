@@ -1,0 +1,28 @@
+<div ng-if = "v_pop.current.popup_visible" class = "popup_container">
+	<!-- delete option -->
+	<div ng-if = "v_pop.current.popup_data.popup_type === 'delete_option'">
+		<h5>The following pages are descendants of this option and will also be deleted:</h5>
+		<article 	ng-repeat = "page in v_pop.current.popup_data.pages"
+					class = "picker_item ib">
+			<p class = "picker_title">{{page._title}}</p>
+			<p class = "picker_text">{{page._text}}</p>
+		</article>
+		<hr>
+		<h5>Do you want to proceed?</h5>
+		<button ng-click = "v_pop.confirm()">Yes</button><button ng-click = "v_pop.cancel()">No</button>
+		
+	</div>
+	<!-- delete page - really this could be folded in with delete option -->
+	<div ng-if = "v_pop.current.popup_data.popup_type === 'delete_page'">
+		<h5>The following pages are descendants of this page and will also be deleted:</h5>
+		<article 	ng-repeat = "page in v_pop.current.popup_data.pages"
+					class = "picker_item ib">
+			<p class = "picker_title">{{page._title}}</p>
+			<p class = "picker_text">{{page._text}}</p>
+		</article>
+		<hr>
+		<h5>Do you want to proceed?</h5>
+		<button ng-click = "v_pop.confirm()">Yes</button><button ng-click = "v_pop.cancel()">No</button>
+	</div>
+	
+</div>
