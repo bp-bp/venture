@@ -1,7 +1,16 @@
 <div class = "wrapper" ng-if = "v_story.users.logged_in()">
+	<!-- left/top control panel -->
 	<div class = "left-view panel">
-		left<!-- placeholder -->
+		<header class = "panel-head">
+			<h5 class = "panel-head-title">Stories</h5>
+			<div class = "panel-head-buttons">
+				<button ng-if = "v_story.users.logged_in()"
+						ng-click = "v_story.create_new_story()">Create Story</button>
+			</div>
+		</header>
 	</div>
+	
+	<!-- right/bottom editor panel -->
 	<div class = "right-view panel">
 		right<!-- placeholder -->
 	</div>
