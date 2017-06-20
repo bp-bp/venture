@@ -57,6 +57,10 @@ a {
 	color: #8c8c8c;
 }
 
+label {
+	font-weight: bold;
+}
+
 fieldset {
 	border: none;
 	padding: .5rem;
@@ -65,16 +69,17 @@ fieldset {
 fieldset > .field {
 	display: table-row;
 	padding: 2rem;
+	border: 1px solid yellow;
 }
 .field > * {
 	display: table-cell;
-	padding: 0 .5rem 0 0;
+	padding: 0 1rem 0 0;
 	margin: .5rem 0 0 0;
+	border: 1px solid blue;
 }
 fieldset legend {
 	font-weight: bold;
 	font-size: 1.1rem;
-	/*margin-bottom: .5rem;*/
 }
 
 /********** TEST TEST TEST **********/
@@ -104,6 +109,7 @@ fieldset legend {
 }
 .panel-head {
 	padding: 0.25rem;
+	overflow: auto;
 }
 .panel-head-title {
 
@@ -111,7 +117,7 @@ fieldset legend {
 .panel-head-buttons {
 	text-align: center;
 }
-@media (min-width: 550px) {
+@media (min-width: 750px) {
 	.panel-head-title {
 		display: inline-block;
 	}
@@ -139,7 +145,7 @@ fieldset legend {
 	width: 100%;
 	margin: 0 auto;
 }
-@media (min-width: 550px) {
+@media (min-width: 750px) {
 	.center-column {
 		width: 50%;
 	}
@@ -151,7 +157,7 @@ fieldset legend {
 .right-view {
 
 }
-@media (min-width: 550px) {
+@media (min-width: 750px) {
 	.wrapper {
 		width: 90%;
 		padding: 0;
@@ -197,7 +203,7 @@ fieldset legend {
 	background-color: #030202;
 }
 .picker-text {
-	font-size: .8rem;
+	font-size: 0.8rem;
 	font-style: italic;
 	padding: 0 .5rem;
 	overflow: hidden;
@@ -208,12 +214,52 @@ fieldset legend {
 	border: 1px solid #b4b4b4;
 	background-color: #222222;
 }
+
+/* general */
+.small-note {
+	font-size: 0.8rem;
+	font-style: italic;
+}
+.info-box {
+	display: table-cell;
+	vertical-align: middle;
+	border: 1px solid #8c8c8c;
+	border-radius: 3px;
+	width: 12rem;
+	height: 4rem;
+	text-align: center;
+	margin: 1rem 2.5rem;
+}
+/* editor fields */
+/* percent widths here dont work with fieldset trick */
+.editor-title-input {
+	width: 90%;
+}
+.editor-text-input {
+	width: 90%;
+	height: 8rem;
+}
+@media(min-width: 750px) {
+	.editor-title-input {
+		width: 100%;
+		/*min-width: 20rem;*/
+	}
+	.editor-text-input {
+		width: 100%;
+		/*min-width: 20rem;*/
+		height: 8rem;
+	}
+}
+
 /********** utilities **********/
 .spacer-bottom {
 	margin-bottom: 1.25rem;
 }
 .spacer-top {
 	margin-top: 1.25rem;
+}
+.spacer-left {
+	margin-left: 1.25rem;
 }
 .center-contents {
 	text-align: center;
@@ -223,4 +269,16 @@ fieldset legend {
 }
 .ib {
 	display: inline-block;
+}
+.cf {
+	content: "";
+	display: table;
+	clear: both;
+}
+.bold {
+	font-weight: bold;
+}
+.cell-center {
+	vertical-align: middle;
+	text-align: center;
 }
