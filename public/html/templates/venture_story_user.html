@@ -79,7 +79,7 @@
 		</section>
 		
 		<!-- story editor, edit mode -->
-		<section class = "row edit_panel" ng-if = "v_story.story_mode === 'edit' && v_story.current.story">
+		<section ng-if = "v_story.story_mode === 'edit' && v_story.current.story">
 			<!-- story editor title -->
 			<header class = "panel-head">
 				<h5 class = "panel-head-title">Edit</h5>
@@ -97,8 +97,8 @@
 			</header>
 			
 			<!-- story editor edit panel -->
-			<fieldset class = "red">
-				<p class = "field">
+			<fieldset class = "red wide">
+				<p class = "field wide">
 					<label for = "story_public_view">Public?</label>
 					<span>
 						<input 	type = "checkbox" 
@@ -108,7 +108,7 @@
 								ng-model-options = "{getterSetter: true}"/>
 					</span>
 				</p>
-				<p class = "field">
+				<p class = "field wide">
 					<label for = "story_public_edit">Publically Editable?</label>
 					<span>
 						<input 	type = "checkbox" 
@@ -120,19 +120,19 @@
 				</p>
 				
 				<!--<section>-->
-					<p class = "field">
+					<p class = "field wide">
 						<label for = "story_title">Title</label>
-						<input 	id = "story_title" 
+						<span><input 	id = "story_title" 
 								class = "editor-title-input"
 								ng-model = "v_story.current.story.title"
-								ng-model-options = "{getterSetter: true}">
+								ng-model-options = "{getterSetter: true}"></span>
 					</p>
-					<p class = "field">
+					<p class = "field wide">
 						<label for = "story_description">Description</label>
-						<textarea 	id = "story_description" 
+						<span><textarea 	id = "story_description" 
 									class = "editor-text-input"
 									ng-model = "v_story.current.story.description"
-									ng-model-options = "{getterSetter: true}"></textarea>
+									ng-model-options = "{getterSetter: true}"></textarea></span>
 					</p>
 				<!--</section>-->
 			</fieldset>
