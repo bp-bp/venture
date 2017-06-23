@@ -855,13 +855,10 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	};
 	
 	this.Page.prototype.add_option = function() {
-		var init = {page_id: this._id, is_new: true, story_id: this.story_id};
+		var init = {page_id: this._id, is_new: true, story_id: this.story_id, _sort_order: this.option_ids.length + 1};
 		var option = new srv.Option(init);
-		//this.option_ids.push(option._id); // now added in Option's callback from gen_id server call
 		srv.options.push(option);
 		
-		// no, cause we want to be able to define option without actually spawning target
-		//option.spawn_target_page();
 		this.modified = true;
 	};
 	
@@ -870,12 +867,9 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		for (i = 0; i < this.option_ids.length; i++) {
 			opt = srv.get_option_from_id(this.option_ids[i]);
 			if (opt) {
-				// wtf am i doing here
-				//options.push(srv.get_option_from_id(this.option_ids[i]));
 				options.push(opt);
 			}
 		}
-		//console.log("got options: ", options);
 		return options;
 	};
 	
@@ -885,10 +879,8 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		}
 		var source_option = srv.get_option_from_id(this.source_option);
 		if (! source_option) {
-			//console.log("couldn't find source option for " + this.title);
 			return null;
 		}
-		//console.log("found source option");
 		var parent_page = source_option.get_parent_page();
 		return parent_page;
 	};
@@ -903,10 +895,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 				cx.push(page);
 			}
 		}
-		//console.log("child_pages: ", cx);
-		//console.log("get_child_pages returning: ", (cx.length > 0) ? cx : null);
-		//return (cx.length > 0) ? cx : null;
-		//return (cx.length > 0) ? cx : [];
 		return cx;
 	};
 	
@@ -977,10 +965,9 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		this.type = "option";
 		this.is_new = init.hasOwnProperty("is_new") ? init.is_new : false;
 		this._text = init.hasOwnProperty("_text") ? init._text : null;
-		//this._id = init.hasOwnProperty("_id") ? init._id : srv.id.new_id();
+		this._sort_order = init.hasOwnProperty("_sort_order") ? init._sort_order : 0;
 		this.page_id = init.page_id;
 		this.story_id = init.story_id || null; 
-		//this.target_page = init.hasOwnProperty("target_page") ? init.target_page : srv.id.new_id();
 		
 		// handle new id for target page
 		this.target_page = null;
@@ -1030,6 +1017,14 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 			this.modified = true;
 		}
 		return this._text;
+	};
+	
+	this.Option.prototype.sort_order = function(val) {
+		if (val != undefined) {
+			this._sort_order = val;
+			this.modified = true;
+		}
+		return this._sort_order;
 	};
 	
 	this.Option.prototype.spawn_target_page = function() {

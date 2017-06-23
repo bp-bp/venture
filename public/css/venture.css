@@ -40,6 +40,11 @@ input {
 	color: black;
 	height: 1.7rem;
 }
+textarea {
+	border-radius: 3px;
+	border: 1px solid #8c8c8c;
+	color: black;
+}
 
 h1, h2, h3, h4, h5, h6 {
 	margin: 0;
@@ -69,13 +74,11 @@ fieldset {
 fieldset > .field {
 	display: table-row;
 	padding: 2rem;
-	border: 1px solid yellow;
 }
 .field > * {
 	display: table-cell;
 	padding: 0 1rem 0 0;
 	margin: .5rem 0 0 0;
-	border: 1px solid blue;
 }
 fieldset legend {
 	font-weight: bold;
@@ -237,26 +240,56 @@ fieldset legend {
 }
 .editor-text-cont {
 	width: 100%;
-	height: 30rem;
+	height: 22rem;
 }
 .editor-title-cont label {
 	display: block;
 }
+.editor-title-cont input {
+	width: 100%;
+}
 .editor-text-cont textarea {
 	width: 100%;
-	height: 28rem;
+	height: 20rem;
 }
 @media(min-width: 750px) {
 	.editor-title-cont {
-		width: 50%;
+		width: 65%;
 		margin: 0 auto;
 		min-width: 20rem;
 	}
 	.editor-text-cont {
-		width: 50%;
+		width: 65%;
 		margin: 0 auto;
 		min-width: 20rem;
 	}
+}
+.option-container {
+	border: 1px solid red;
+	width: 100%;
+}
+@media(min-width: 750px) {
+	.option-container {
+		width: 65%;
+		margin: 0 auto;
+		min-width: 25rem;
+	}
+}
+.option-repeater {
+	text-align: center;
+}
+.option-box {
+	display: inline-block;
+	border: 1px solid #8c8c8c;
+	border-radius: 3px;
+	/*width: 12rem;*/
+	/*height: 4rem;*/
+	/*text-align: center;*/
+	margin: 1rem;
+	padding: 1rem;
+}
+.option-box textarea {
+	height: 6rem;
 }
 
 /********** utilities **********/
@@ -274,6 +307,9 @@ fieldset legend {
 }
 .float-right {
 	float: right;
+}
+.float-left {
+	float: left;
 }
 .ib {
 	display: inline-block;

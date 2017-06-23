@@ -32,10 +32,10 @@
 	
 	<!-- right/bottom control panel -->
 	<div class = "right-view panel">
-		<!-- page editor header -->
 		<section ng-if = "v_page.current.page">
+			<!-- page editor header -->
 			<header class = "panel-head">
-				<h5 class = "panel-head-title">Pages</h5>
+				<h5 class = "panel-head-title">{{v_page.current.page.title()}}</h5>
 				<div class = "panel-head-buttons">
 					<!-- maybe a save current button goes here? -->
 					<button ng-click = "v_page.exit_edit()">Exit</button>
@@ -45,7 +45,7 @@
 			
 			<!-- page editor -->
 			<fieldset class = "center-contents">
-				<p class = "editor-title-cont">
+				<p class = "editor-title-cont spacer-bottom">
 					<label class = "bold" for = "page_title">Title</label>
 					<input 	id = "page_title"
 							ng-model = "v_page.current.page.title"
@@ -58,6 +58,25 @@
 								ng-model-options = "{getterSetter: true}"></textarea>
 				</p>
 			</fieldset>
+		</section>
+		
+		<!-- option section -->
+		<section ng-if = "v_page.current.page" class = "option-container">
+			<header class = "panel-head">
+				<h5 class = "panel-head-title">Options</h5>
+				<div class = "panel-head-buttons">
+					<button ng-if = "v_page.any_child_pages_do_not_exist(v_page.current.page)" ng-click = "v_page.current.page.spawn_all_child_pages()">Create All Child Pages</button>
+					<button ng-click = "v_page.current.page.add_option()">Add Option</button>
+				</div>
+			</header>
+			
+			<!-- options -->
+			<div class = "option-repeater">
+				<article class = "option-box" ng-repeat = "option in v_page.current.page.get_options() track by $index">
+					<strong class = "float-left">#{{option._sort_order}}</strong><h6>Option Text:</h6>
+					<textarea ng-model = "option.text" ng-model-options = "{getterSetter: true}"></textarea>
+				</article>
+			</div>
 		</section>
 	</div>
 	

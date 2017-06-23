@@ -8,6 +8,7 @@ const ObjectId = mongoose.Schema.Types.ObjectId;
 const option_schema = mongoose.Schema({
 	_id: ObjectId
 	, _text: String
+	, _sort_order: Number
 	, page_id: {type: ObjectId, ref: "Page"}
 	, target_page: {type: ObjectId, ref: "Page"}
 	, created_by_user: {type: ObjectId, ref: "User"}
