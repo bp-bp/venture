@@ -1,9 +1,25 @@
 /********** global page stuff **********/
+@font-face {
+	font-family: "questa-grande-regular";
+	src: url('fonts/2-questa_grande_regular_31-webfont.woff2') format('woff2'),
+         url('fonts/2-questa_grande_regular_31-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+	font-family: "corbert-regular";
+	src: url('fonts/Corbert-Regular-webfont.woff2') format('woff2'),
+         url('fonts/Corbert-Regular-webfont.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+}
+
 
 html, body {
 	min-height: 100%;
 	line-height: 1.25;
 	box-sizing: border-box;
+	font-family: "questa_grande_regular";
 }
 *, *:before, *:after {
 	box-sizing: inherit;
@@ -60,6 +76,10 @@ h6 {font-size: 1rem;}
 a {
 	text-decoration: none;
 	color: #8c8c8c;
+}
+
+a,.a,button,.button,h1,h2,h3,h4,h5,h6 {
+	font-family: "corbert-regular";
 }
 
 label {
@@ -291,7 +311,12 @@ fieldset legend {
 .option-box textarea {
 	height: 6rem;
 }
-
+.equal-buttons {
+}
+.equal-buttons button {
+	width: 33%;
+	border: none;
+}
 /********** utilities **********/
 .spacer-bottom {
 	margin-bottom: 1.25rem;

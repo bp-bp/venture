@@ -1086,6 +1086,44 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return cx;
 	};
 	
+	function sort_order_sort(a, b) {
+		if (a._sort_order < b._sort_order) {
+			return -1;
+		}
+		if (a._sort_order > b._sort_order) {
+			return 1;
+		}
+		return 0;
+	}
+	
+	this.Option.prototype.sort_up = function() {
+		// stop if this is already the first option, _sort_order === 1
+		if (this._sort_order === 1) {
+			return;
+		}
+		var opts = this.get_parent_page().get_options().sort(sort_order_sort);
+		var targ = opts[this._sort_order - 1 - 1];
+		console.log("this one: ", this);
+		console.log("targ: ", targ);
+		targ._sort_order += 1;
+		this._sort_order -= 1;
+		targ.modified = true;
+		this.modified = true;
+	};
+	
+	this.Option.prototype.sort_down = function() {
+		var opts = this.get_parent_page().get_options().sort(sort_order_sort);
+		// stop if this is already the last option, _sort_order === opts.length
+		if (this._sort_order === opts.length) {
+			return;
+		}
+		var targ = opts[this._sort_order - 1 + 1];
+		targ._sort_order -= 1;
+		this._sort_order += 1;
+		targ.modified = true;
+		this.modified = true;
+	}; 
+	
 	this.get_option_from_id = function(_id) {
 		var i; 
 		for (i = 0; i < this.options.length; i++) {

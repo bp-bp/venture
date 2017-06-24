@@ -72,9 +72,10 @@
 			
 			<!-- options -->
 			<div class = "option-repeater">
-				<article class = "option-box" ng-repeat = "option in v_page.current.page.get_options() track by $index">
+				<article class = "option-box" ng-repeat = "option in v_page.current.page.get_options() | orderBy: '_sort_order'">
 					<strong class = "float-left">#{{option._sort_order}}</strong><h6>Option Text:</h6>
 					<textarea ng-model = "option.text" ng-model-options = "{getterSetter: true}"></textarea>
+					<div class = "equal-buttons"><button ng-click = "option.sort_up()"><i class = "fa fa-chevron-circle-up icon-4x"></i></button><button><i class = "fa fa-times-circle icon-4x"></i></button><button ng-click = "option.sort_down()"><i class = "fa fa-chevron-circle-down fa-icon-4x"></i></button></div>
 				</article>
 			</div>
 		</section>
