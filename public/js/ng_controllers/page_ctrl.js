@@ -21,6 +21,9 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 					if (! got_pages) {
 						self.current.page = self.pages.create_new_page({story_id: self.current.story._id, first: true});
 					}
+					else {
+						self.current.page = self.pages.pages[0];
+					}
 				},
 				// fail
 				function(err) {
@@ -61,8 +64,37 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 			$location.path("/read").search({story: self.current.story._id, page: self.branch_edit_source_page});
 		}
 		else if (self.mode === "story_edit") {
-			$location.path("/stories");
+			$location.path("/stories/user").search({story: self.current.story._id});;
 		}
+	};
+	
+	// story management/service interaction functions
+	self.create_new_story = function() {
+		if (self.users.logged_in()) {
+			var new_story = self.pages.create_new_story({created_by: self.users.user._id});
+			self.current.story = new_story;
+		}
+	};
+	
+	self.read_story = function(story) {
+		var id = story || self.current.story._id;
+		$location.path("/read").search({story: id});
+	};
+	
+	self.save_current_story = function() {
+		if (! self.current.story) {
+			return;
+		}
+		var to_save = [self.current.story];
+		self.pages.save_stories(to_save).then(
+			// success
+			function() {
+			},
+			// fail
+			function(err) {
+				self.message = err;
+			}
+		);
 	};
 	
 	// ui display stuff
@@ -174,7 +206,7 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 		);
 	};
 	
-	// its own function in case we want to do something in here
+	// its own function in case we want to do something in the controller here
 	self.save_all_pages = function() {
 		self.pages.save_all()
 	};

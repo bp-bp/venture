@@ -47,7 +47,7 @@ button, .button {
 	font-size: .9rem;
 }
 button:hover {
-	color: #b4b4b4;
+	color: #e0e0e0;
 }
 
 input {
@@ -285,8 +285,8 @@ fieldset legend {
 	}
 }
 .option-container {
-	border: 1px solid red;
 	width: 100%;
+	min-height: 6rem;
 }
 @media(min-width: 750px) {
 	.option-container {
@@ -297,6 +297,9 @@ fieldset legend {
 }
 .option-repeater {
 	text-align: center;
+}
+.option-repeater .icon-text-button i {
+	margin-right: 0.5rem;
 }
 .option-box {
 	display: inline-block;
@@ -317,6 +320,28 @@ fieldset legend {
 	width: 33%;
 	border: none;
 }
+.whole-button button {
+	width: 100%;
+	border: none;
+	font-size: 80%;
+}
+/* popup */
+.popup-container {
+	position: fixed;
+	left: 15%;
+	right: 15%;
+	top: 15%;
+	min-height: 30%;
+	z-index: 10;
+	background-color: #222222;
+	border: 3px solid #5e5e5e;
+	text-align: center;
+}
+.popup-container .picker-container {
+	width: 60%;
+	margin: 0 auto;
+	text-align: left;
+}
 /********** utilities **********/
 .spacer-bottom {
 	margin-bottom: 1.25rem;
@@ -327,8 +352,14 @@ fieldset legend {
 .spacer-left {
 	margin-left: 1.25rem;
 }
+.spacer-right {
+	margin-right: 1.25rem;
+}
 .center-contents {
 	text-align: center;
+}
+.left-align-contents {
+	text-align: left;
 }
 .float-right {
 	float: right;
@@ -338,6 +369,9 @@ fieldset legend {
 }
 .ib {
 	display: inline-block;
+}
+.it {
+	display: inline-table;
 }
 .cf {
 	content: "";

@@ -243,6 +243,12 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		this.stories = [];
 	};
 	
+	this.clear_data_keep_story = function() {
+		this.pages = [];
+		this.root_page = null;
+		this.options = [];
+	};
+	
 	// note that these are the same, clean up
 	this.prep_for_read = function() {
 		//console.log("clearing pages and options, retaining story");
@@ -260,11 +266,17 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		this.stories = [];
 	};
 	
-	this.clear_data = function() {
-		this.pages = [];
-		this.root_page = null;
-		this.options = [];
-		this.stories = [];
+	this.find_story = function(id) {
+		if (!id) {
+			return;
+		}
+		var story;
+		this.stories.forEach(function(s) {
+			if (s._id === id) {
+				story = s;
+			}
+		});
+		return story || null;
 	};
 	
 	// using this?
@@ -405,6 +417,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		init_obj._id = loaded._id;
 		init_obj.is_new = false;
 		init_obj._text = loaded._text;
+		init_obj._sort_order = loaded._sort_order;
 		init_obj.page_id = loaded.page_id;
 		init_obj.story_id = loaded.story_id;
 		init_obj.target_page = loaded.target_page;

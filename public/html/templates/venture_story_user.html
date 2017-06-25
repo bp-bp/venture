@@ -17,7 +17,7 @@
 			<article 			class = "picker-item"
 								ng-class = "{'picker-selected': v_story.current.story._id === story._id}"
 								ng-repeat = "story in v_story.pages.stories"
-								ng-click = "v_story.current.story = story">
+								ng-click = "v_story.select_story(story)">
 				<header class = "panel-head">
 					<h6 class = "panel-head-title">{{story.disp_title()}}</h6>
 					<strong ng-if = "story.modified" class = "float-right">*</strong>
@@ -29,116 +29,51 @@
 	
 	<!-- right/bottom editor panel -->
 	<div class = "right-view panel">
-		<!-- story viewer, view mode -->
-		<section class = "" ng-if = "v_story.story_mode === 'view' && v_story.current.story">
-			<!-- story viewer title -->
-			<header class = "panel-head">
-				<h5 class = "panel-head-title">{{v_story.current.story.disp_title()}}</h5>
-				<span class = "small-note spacer-left">Created by: <strong>{{v_story.current.story.created_by}}</strong></span>
-				<div class = "panel-head-buttons">
-					<button class = ""
-							ng-click = "v_story.read_story()"
-							title = "Read Story">Read</button>
-					<button class = ""
-							ng-if = "v_story.current.story.my_story"
-							ng-click = "v_story.set_story_mode('edit')"
-							title = "Edit Story">Edit Story</button>
-				</div>
-			</header>
-			
-			<!-- story viewer body -->
-			<section>
-				<!-- story details -->
-				<fieldset>
-					<p class = "field">
-						<label class = "bold">Title</label>
-						<span>{{v_story.current.story.title()}}</span>
-					</p>
-					<p class = "field">
-						<label class = "bold">Description</label>
-						<span>{{v_story.current.story.description()}}</span>
-					</p>
-				</fieldset>
-				
-				<!-- info boxes -->
-				<div class = "center-contents">
-					<div class = "ib">
-						<div class = "info-box">
-							<h6 class = "small-note">{{v_story.public_view_display(v_story.current.story._public_view)}}</h6>
-						</div>
-					</div>
-					<div class = "ib">
-						<div class = "info-box">
-							<h6 class = "small-note">{{v_story.public_edit_display(v_story.current.story._public_edit)}}</h6>
-						</div>
-					</div>
-				</div>
-				
-				
-			</section>
-		</section>
-		
-		<!-- story editor, edit mode -->
-		<section ng-if = "v_story.story_mode === 'edit' && v_story.current.story">
+		<!-- story editor -->
+		<section ng-if = "v_story.current.story">
 			<!-- story editor title -->
 			<header class = "panel-head">
 				<h5 class = "panel-head-title">Edit</h5>
 				<div class = "panel-head-buttons">
-					<button class = "u-pull-right" 
-							ng-click = "v_story.exit_edit()"
-							title = "Finished">Finished</button>
 					<button class = "u-pull-right"
 							ng-click = "v_story.save_current_story()"
 							title = "Save">Save</button>
 					<button class = "u-pull-right"
 							ng-click = "v_story.edit_pages()"
-							title = "Write Pages">Write Pages</button>
+							title = "Write Pages">Edit Pages</button>
 				</div>
 			</header>
 			
 			<!-- story editor edit panel -->
-			<fieldset class = "wide">
-				<p class = "field wide">
-					<label for = "story_public_view">Public?</label>
-					<span>
-						<input 	type = "checkbox" 
-								class = "cell-center"
+			<div class = "center-contents">
+				<fieldset class = "left-align-contents it">
+					<p class = "field">
+						<label class = "cell-center" for "story_public_view">Publically Readable?</label>
+						<span class = "cell-center"><input 	type = "checkbox"
 								id = "story_public_view"
 								ng-model = "v_story.current.story.public_view"
-								ng-model-options = "{getterSetter: true}"/>
-					</span>
-				</p>
-				<p class = "field wide">
-					<label for = "story_public_edit">Publically Editable?</label>
-					<span>
-						<input 	type = "checkbox" 
-								class = "cell-center"
+								ng-model-options = "{getterSetter: true}"/></span>
+					
+						<label class = "cell-center" for = "story_public_edit">Publically Editable?</label>
+						<span class = "cell-center"><input 	type = "checkbox"
 								id = "story_public_edit"
 								ng-model = "v_story.current.story.public_edit"
-								ng-model-options = "{getterSetter: true}">
-					</span>
+								ng-model-options = "{getterSetter: true}"/></span>
+					</p>
+				</fieldset>
+				<p class = "editor-title-cont">
+					<label for = "story_title">Title</label>
+					<input 	id = "story_title"
+							ng-model = "v_story.current.story.title"
+							ng-model-options = "{getterSetter: true}"/>
 				</p>
-				
-				<!--<section>-->
-					<p class = "field wide">
-						<label for = "story_title">Title</label>
-						<span><input 	id = "story_title" 
-								class = "editor-title-input"
-								ng-model = "v_story.current.story.title"
-								ng-model-options = "{getterSetter: true}"></span>
-					</p>
-					<p class = "field wide">
-						<label for = "story_description">Description</label>
-						<span><textarea 	id = "story_description" 
-									class = "editor-text-input"
-									ng-model = "v_story.current.story.description"
-									ng-model-options = "{getterSetter: true}"></textarea></span>
-					</p>
-				<!--</section>-->
-			</fieldset>
-			
-			
-			
+				<p class = "editor-text-cont">
+					<label for = "story_description">Description</label>
+					<textarea 	id = "story_description"
+								ng-model = "v_story.current.story.description"
+								ng-model-options = "{getterSetter: true}"></textarea>
+				</p>
+			</div>
 		</section>
 	</div>
 
