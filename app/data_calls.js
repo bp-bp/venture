@@ -210,6 +210,41 @@ module.exports.save_stories = function(req, res) {
 		new_stories.push(new_story);
 	}
 	
+	/*
+	var insert_prom, update_prom;
+	
+	if (! mod_stories.length) {
+		update_prom = Q.when();
+	}
+	if (! save_stories.length) {
+		insert_prom = Q.when();
+	}
+	
+	// pull stories for update from db and modify with new values
+	// first make an array of ids we're updating
+	mod_stories.forEach(function(s) {
+		updt_story_ids.push(s._id);
+	});
+	
+	// now query
+	update_prom = Story.find({_id: {$in: updt_story_ids}}).then(
+		// success
+		function(db_stories) {
+			var db_stories_dict = array_to_dict(updt_stories); // dict by _id of stories from query
+			var mod_stories_dict = array_to_dict(mod_stories); // dict by _id of stories from front end... do I need both of these?
+			
+			mod_stories.forEach(function(s) {
+				
+			});
+		},
+		// fail
+		function(err) {
+			return Q.reject(err);
+		}
+	);
+	*/
+	
+	/********** old **********/
 	if (! save_stories.length) {
 		finished.inserts = true;
 	}
@@ -231,8 +266,8 @@ module.exports.save_stories = function(req, res) {
 			updt_stories = result;
 			// make dict out of updt_stories for easier matching
 			// ...would it be better to just sort both by _id? no... if one is missing...
-			var updt_stories_dict = array_to_dict(updt_stories);
-			var mod_stories_dict = array_to_dict(mod_stories);
+			var updt_stories_dict = array_to_dict(updt_stories); // updt_stories from querry
+			var mod_stories_dict = array_to_dict(mod_stories); // mod stories from front end
 			var i, temp;
 			// loop and update fields
 			for (i = 0; i < mod_stories.length; i++) {
