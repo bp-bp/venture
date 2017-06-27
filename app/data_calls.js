@@ -196,6 +196,20 @@ module.exports.save_stories = function(req, res) {
 	
 	var i, new_story, new_stories = [], updt_story, updt_story_ids = [], updt_stories = [], updt_stories_finished = [];
 	// create new stories, build list for insert
+	save_stories.forEach(function(s) {
+		new_story = new Story();
+		new_story._id = s._id;
+		new_story._title = s._title;
+		new_story._description = s._description;
+		new_story._public_view = s._public_view;
+		new_story._public_edit = s._public_edit;
+		new_story.created_by_user = req.user._id;
+		new_story.updated_by_user = req.user._id;
+		new_story.page_ids = s.page_ids;
+		
+		new_stories.push(new_story);
+	});
+	/*
 	for (i = 0; i < save_stories.length; i++) {
 		new_story = new Story();
 		new_story._id = save_stories[i]._id;
@@ -209,42 +223,77 @@ module.exports.save_stories = function(req, res) {
 		
 		new_stories.push(new_story);
 	}
-	
-	/*
-	var insert_prom, update_prom;
-	
-	if (! mod_stories.length) {
-		update_prom = Q.when();
-	}
-	if (! save_stories.length) {
-		insert_prom = Q.when();
-	}
-	
-	// pull stories for update from db and modify with new values
-	// first make an array of ids we're updating
-	mod_stories.forEach(function(s) {
-		updt_story_ids.push(s._id);
-	});
-	
-	// now query
-	update_prom = Story.find({_id: {$in: updt_story_ids}}).then(
-		// success
-		function(db_stories) {
-			var db_stories_dict = array_to_dict(updt_stories); // dict by _id of stories from query
-			var mod_stories_dict = array_to_dict(mod_stories); // dict by _id of stories from front end... do I need both of these?
-			
-			mod_stories.forEach(function(s) {
-				
-			});
-		},
-		// fail
-		function(err) {
-			return Q.reject(err);
-		}
-	);
 	*/
 	
+	// set up promises
+	var insert_prom, update_prom;
+	
+	// modify stories, first check if we even need to bother
+	if (! mod_stories.length) {
+		console.log("don't bother modifying");
+		update_prom = Q.resolve();
+	}
+	else {
+		console.log("going to modify");
+		// pull stories for update from db and modify with new values
+		// first make an array of ids we're updating
+		mod_stories.forEach(function(s) {
+			updt_story_ids.push(s._id);
+		});
+		console.log("updt_story_ids: ", updt_story_ids);
+		// now query and kick off updates
+		update_prom = Story.find({_id: {$in: updt_story_ids}}).then(
+			// success
+			function(db_stories) {
+				console.log("got here, db_stories: ", db_stories);
+				console.log("mod_stories: ", mod_stories);
+				var db_stories_dict = array_to_dict(db_stories); // dict by _id of stories from query
+				var mod_stories_dict = array_to_dict(mod_stories); // dict by _id of stories from front end... do I need both of these?
+				var temp, to_write = [];
+				mod_stories.forEach(function(s) {
+					console.log("each: ", s);
+					temp = db_stories_dict[s._id];
+					temp._title = s._title;
+					temp._description = s._description;
+					temp._public_view = s._public_view;
+					temp._public_edit = s._public_edit;
+					temp._updated_by_user = req.user._id;
+					temp.page_ids = s.page_ids;
+
+					to_write.push(temp.save());
+					console.log("happening");
+				});
+
+				return Q.all(to_write);
+			},
+			// fail
+			function(err) {
+				return Q.reject(err);
+			}
+		);
+	}
+	
+	// now the inserts, check if we need to bother
+	if (! save_stories.length) {
+		insert_prom = Q.resolve();
+	}
+	else {
+		insert_prom = Story.insertMany(new_stories);
+	}
+	
+	Q.all([update_prom, insert_prom]).then(
+		// success
+		function() {
+			res.send({message: "finished inserting and updating"});
+		}, 
+		// fail
+		function(err) {
+			res.send({message: "error inserting or updating stories", err: err});
+		}
+	);
+	
 	/********** old **********/
+	/*
 	if (! save_stories.length) {
 		finished.inserts = true;
 	}
@@ -338,7 +387,7 @@ module.exports.save_stories = function(req, res) {
 			res.send({message: "finished inserting and updating"});
 		}
 	}
-	
+	*/
 	// utility thing
 	function array_to_dict(arr) {
 		var dict = {};
