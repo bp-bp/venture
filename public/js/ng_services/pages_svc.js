@@ -1028,6 +1028,12 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		if (val != undefined) {
 			this._text = val;
 			this.modified = true;
+			// we need the parent page to be flagged as modified on the front-end, 
+			// but actually setting the flag will cause the parent page to get re-saved
+			// and overwritten unnecessarily. think about using a getter on the Page
+			// object to check child options, using getter on front-end while leaving
+			// flag alone and accurate
+			//this.get_parent_page().modified = true;
 		}
 		return this._text;
 	};
@@ -1036,6 +1042,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		if (val != undefined) {
 			this._sort_order = val;
 			this.modified = true;
+			//this.get_parent_page().modified = true;
 		}
 		return this._sort_order;
 	};

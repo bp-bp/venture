@@ -188,7 +188,7 @@ module.exports.get_page_short_id = function(req, res) {
 	);
 };
 
-// rejigger this to just use .all(), not sure why I did it this way
+// save stories... currently only called with one story at a time from front-end, but can handle multiples
 module.exports.save_stories = function(req, res) {
 	var save_stories = req.body.stories.new_ones;
 	var mod_stories = req.body.stories.mod;
@@ -209,49 +209,27 @@ module.exports.save_stories = function(req, res) {
 		
 		new_stories.push(new_story);
 	});
-	/*
-	for (i = 0; i < save_stories.length; i++) {
-		new_story = new Story();
-		new_story._id = save_stories[i]._id;
-		new_story._title = save_stories[i]._title;
-		new_story._description = save_stories[i]._description;
-		new_story._public_view = save_stories[i]._public_view;
-		new_story._public_edit = save_stories[i]._public_edit;
-		new_story.created_by_user = req.user._id;
-		new_story.updated_by_user = req.user._id;
-		new_story.page_ids = save_stories[i].page_ids;
-		
-		new_stories.push(new_story);
-	}
-	*/
 	
 	// set up promises
 	var insert_prom, update_prom;
 	
 	// modify stories, first check if we even need to bother
 	if (! mod_stories.length) {
-		console.log("don't bother modifying");
 		update_prom = Q.resolve();
 	}
 	else {
-		console.log("going to modify");
 		// pull stories for update from db and modify with new values
 		// first make an array of ids we're updating
 		mod_stories.forEach(function(s) {
 			updt_story_ids.push(s._id);
 		});
-		console.log("updt_story_ids: ", updt_story_ids);
 		// now query and kick off updates
 		update_prom = Story.find({_id: {$in: updt_story_ids}}).then(
 			// success
 			function(db_stories) {
-				console.log("got here, db_stories: ", db_stories);
-				console.log("mod_stories: ", mod_stories);
 				var db_stories_dict = array_to_dict(db_stories); // dict by _id of stories from query
-				var mod_stories_dict = array_to_dict(mod_stories); // dict by _id of stories from front end... do I need both of these?
 				var temp, to_write = [];
 				mod_stories.forEach(function(s) {
-					console.log("each: ", s);
 					temp = db_stories_dict[s._id];
 					temp._title = s._title;
 					temp._description = s._description;
@@ -261,7 +239,6 @@ module.exports.save_stories = function(req, res) {
 					temp.page_ids = s.page_ids;
 
 					to_write.push(temp.save());
-					console.log("happening");
 				});
 
 				return Q.all(to_write);
@@ -281,6 +258,7 @@ module.exports.save_stories = function(req, res) {
 		insert_prom = Story.insertMany(new_stories);
 	}
 	
+	// now line them all up
 	Q.all([update_prom, insert_prom]).then(
 		// success
 		function() {
@@ -292,102 +270,6 @@ module.exports.save_stories = function(req, res) {
 		}
 	);
 	
-	/********** old **********/
-	/*
-	if (! save_stories.length) {
-		finished.inserts = true;
-	}
-	if (! mod_stories.length) {
-		finished.updts = true;
-	}
-	
-	// pull and modify old stories, build list for update
-	// first get list of ids from passed down modified stories
-	for (i = 0; i < mod_stories.length; i++) {
-		updt_story_ids.push(mod_stories[i]._id);
-	}
-	
-	// now query those stories
-	Story.find({_id: {$in: updt_story_ids}}).then(
-		// success
-		function(result) {
-			//console.log("Story.find for updt_story_ids success, got: ", result);
-			updt_stories = result;
-			// make dict out of updt_stories for easier matching
-			// ...would it be better to just sort both by _id? no... if one is missing...
-			var updt_stories_dict = array_to_dict(updt_stories); // updt_stories from querry
-			var mod_stories_dict = array_to_dict(mod_stories); // mod stories from front end
-			var i, temp;
-			// loop and update fields
-			for (i = 0; i < mod_stories.length; i++) {
-				temp = updt_stories_dict[mod_stories[i]._id]
-				temp._title = mod_stories[i]._title;
-				temp._description = mod_stories[i]._description;
-				temp._public_view = mod_stories[i]._public_view;
-				temp._public_edit = mod_stories[i]._public_edit;
-				temp.updated_by_user = req.user._id;
-				temp.page_ids = mod_stories[i].page_ids;
-				
-				updt_stories_finished.push(temp);
-			}
-			
-			// now save
-			var save_promises = [];
-			for (i = 0; i < updt_stories_finished.length; i++) {
-				save_promises.push(updt_stories_finished[i].save());
-			}
-			
-			//console.log("save_promises: ", save_promises);
-			
-			Q.all(save_promises).then(
-				// success
-				function(result) {
-					//console.log("save_promises finished?");
-					finished.updts = true;
-					check_finished();
-				}, 
-				// fail
-				function(err) {
-					console.log("final save in update stories failed with: ", err);
-					res.status(500);
-					res.send({message: "error updating stories", error: err});
-				}
-			);
-		}, 
-		// fail
-		function(err) {
-			console.log("Story.find for updt_story_ids failed with: ", err);
-			return new Error(err);
-		}
-	);
-	
-	// insert new stories
-	if (new_stories.length) {
-		Story.insertMany(new_stories).then(
-			// success
-			function(result) {
-				finished.inserts = true;
-				check_finished();
-			},
-			// fail
-			function(err) {
-				console.log("save_stories insertMany call failed with: ", err);
-
-			}
-		);
-	}
-	else {
-		res.send({message: "no new stories to save"});
-	}
-	
-	function check_finished() {
-		//console.log("check_finished called");
-		if (finished.inserts && finished.updts) {
-			//console.log("done");
-			res.send({message: "finished inserting and updating"});
-		}
-	}
-	*/
 	// utility thing
 	function array_to_dict(arr) {
 		var dict = {};
@@ -399,18 +281,57 @@ module.exports.save_stories = function(req, res) {
 	
 };
 
-// same deal here, just use .all()
+// save pages and options
 module.exports.save_pages = function(req, res) {
 	
 	var save_pages = req.body.pages.to_save;
-	var updt_pages = req.body.pages.to_update;
+	//var updt_pages = req.body.pages.to_update;
+	var front_update_pages = req.body.pages.to_update;
 	var save_options = req.body.options.to_save;
-	var updt_options = req.body.options.to_update;
+	//var updt_options = req.body.options.to_update;
+	var front_update_options = req.body.options.to_update;
 	var finished = {pages: {inserts: false, updates: false}, options: {inserts: false, updates: false}};
 	
-	// create new page objects from schema, build list for insert
+	// all our promises
+	var insert_pages_prom, update_pages_prom, insert_options_prom, update_options_prom;
 	
+	// create new page objects from schema, build list for insert
 	var i, new_page, new_pages = [], updt_page, fetched_updt_pages = [], updt_page_ids = [], updt_pages_finished = [];
+	save_pages.forEach(function(p) {
+		new_page = new Page();
+		new_page._id = p._id;
+		new_page.short_id = p.short_id;
+		new_page.ancestor_path = p.ancestor_path;
+		new_page._title = p._title;
+		new_page._text = p._text;
+		new_page.first = p.first;
+		new_page.source_option = p.source_option;
+		new_page.story_id = p.story_id;
+		new_page.option_ids = p.option_ids;
+		new_page.created_by_user = req.user._id;
+		new_page.updated_by_user = req.user._id;
+		
+		new_pages.push(new_page);
+	});
+	
+	if (! new_pages.length) {
+		insert_pages_prom = Q.resolve();
+	}
+	else {
+		insert_pages_prom = Page.insertMany(new_pages).then(
+			// success
+			function(results) {
+				// nothing here, just want to handle failure
+			},
+			// fail
+			function(err) {
+				console.log("Page.insertMany failed in save_pages with: ", err);
+				return new Error(err);
+			}
+		);
+	}
+	
+	/*
 	for (i = 0; i < save_pages.length; i++) {
 		new_page = new Page();
 		new_page._id = save_pages[i]._id;
@@ -427,198 +348,130 @@ module.exports.save_pages = function(req, res) {
 		
 		new_pages.push(new_page);
 	}
+	*/
 	
-	if (! save_pages.length) {
-		finished.pages.inserts = true;
-	}
-	if (! updt_pages.length) {
-		finished.pages.updates = true;
-	}
+	// now updating pages
+	// first get a list of ids for query
+	front_update_pages.forEach(function(p) {
+		updt_page_ids.push(p._id);
+	});
 	
-	// fetch then modify existing pages, build list for update
-	// first get list of ids from the modified pages that were passed down
-	for (i = 0; i < updt_pages.length; i++) {
-		updt_page_ids.push(updt_pages[i]._id);
+	// now set up the promise and do the query
+	if (! front_update_pages.length) {
+		update_pages_prom = Q.resolve();
 	}
-	
-	// now query those pages
-	Page.find({_id: {$in: updt_page_ids}}).then(
-		// success 
-		function(result) {
-			fetched_updt_pages = result;
-			// make dict out of updt_pages for easier matching
-			var fetched_updt_pages_dict = array_to_dict(fetched_updt_pages);
-			var updt_pages_dict = array_to_dict(updt_pages);
-			var i, temp;
-			// loop and update fields
-			for (i = 0; i < updt_pages.length; i++) {
-				temp = fetched_updt_pages_dict[updt_pages[i]._id];
-				temp._title = updt_pages[i]._title;
-				temp._text = updt_pages[i]._text;
+	else {
+		update_pages_prom = Page.find({_id: {$in: updt_page_ids}}).then(
+			// success
+			function(pages) {
+				var db_updt_pages_dict = array_to_dict(pages), to_write = [], temp;
+				front_update_pages.forEach(function(p) {
+					temp = db_updt_pages_dict[p._id];
+					
+					temp._title = p._title;
+					temp._text = p._text;
+					temp.first = p.first;
+					temp.source_option = p.source_option;
+					temp.story_id = p.story_id;
+					temp.option_ids = p.option_ids;
+					temp.updated_by_user = req.user._id;
+					
+					to_write.push(temp.save());
+				});
 				
-				temp.first = updt_pages[i].first; 					// will this ever change?
-				temp.source_option = updt_pages[i].source_option; 	// will this ever change?
-				temp.story_id = updt_pages[i].story_id; 			// will this ever change?
-				temp.option_ids = updt_pages[i].option_ids;
-				temp.updated_by_user = req.user._id;
-				
-				updt_pages_finished.push(temp);
+				return Q.all(to_write);
+			},
+			// fail
+			function(err) {
+				console.log("Page.find for update pages failed with: ", err);
+				return new Error(err);
 			}
-			
-			// now save
-			var save_page_promises = [];
-			for (i = 0; i < updt_pages_finished.length; i++) {
-				save_page_promises.push(updt_pages_finished[i].save());
-			}
-			
-			Q.all(save_page_promises).then(
-				// success
-				function(result) {
-					//console.log("update save_page_promises finished");
-					finished.pages.updates = true;
-					check_finished();
-				},
-				// fail
-				function(err) {
-					console.log("update save_page_promises failed with: ", err);
-					res.status(500);
-					res.send({message: "error updating pages", err: err});
-				}
-			);
-		},
-		// fail
-		function(err) {
-			console.log("Page.find for updt_page_ids failed with: ", err);
-			// should this have a q.reject()? look into the whole mongoose promise question
-			return new Error(err);
-		}
-	);
+		);
+	}
 	
-	// now set up new options...
-	var new_option, new_options = [], updt_option, fetched_updt_options = [], updt_option_ids = [], updt_options_finished = [];
-	for (i = 0; i < save_options.length; i++) {
+	// now options, first set up new ones
+	var new_option, new_options = [];
+	save_options.forEach(function(o) {
 		new_option = new Option();
-		new_option._id = save_options[i]._id;
-		new_option._text = save_options[i]._text;
-		new_option._sort_order = save_options[i]._sort_order;
-		new_option.page_id = save_options[i].page_id;
-		new_option.target_page = save_options[i].target_page;
-		new_option.story_id = save_options[i].story_id;
+		new_option._id = o._id;
+		new_option._text = o._text;
+		new_option._sort_order = o._sort_order;
+		new_option.page_id = o._page_id;
+		new_option.target_page = o.target_page;
+		new_option.story_id = o.story_id;
 		new_option.created_by_user = req.user._id;
 		new_option.updated_by_user = req.user._id;
 		
 		new_options.push(new_option);
+	});
+	
+	if (! new_options.length) {
+		insert_options_prom = Q.resolve();
+	}
+	else {
+		insert_options_prom = Option.insertMany(new_options).then(
+			// success
+			function(results) {
+				// nothing here, just want to handle failure
+			},
+			// fail
+			function(err) {
+				console.log("Option.insertMany failed in save_pages with: ", err);
+				return Q.reject(err);
+			}
+		);
 	}
 	
-	if (! save_options.length) {
-		finished.options.inserts = true;
-	}
-	if (! updt_options.length) {
-		finished.options.updates = true;
-	}
+	// now the updates, first get a list of ids for query
+	var updt_option_ids = [];
+	front_update_options.forEach(function(o) {
+		updt_option_ids.push(o._id);
+	});
 	
-	// fetch then modify existing options, build list for update
-	// first get list of ids from options that were passed down to modify
-	for (i = 0; i < updt_options.length; i++) {
-		updt_option_ids.push(updt_options[i]._id);
+	// now set up the promise with query
+	if (! front_update_options.length) {
+		update_options_prom = Q.resolve();
 	}
-	
-	// now query those options
-	Option.find({_id: {$in: updt_option_ids}}).then(
-		// success
-		function(result) {
-			fetched_updt_options = result;
-			// make dict out of updt_options for easier matching
-			var fetched_updt_options_dict = array_to_dict(fetched_updt_options);
-			var updt_options_dict = array_to_dict(updt_options);
-			var i, temp;
-			// loop and update fields
-			for (i = 0; i < updt_options.length; i++) {
-				temp = fetched_updt_options_dict[updt_options[i]._id];
-				temp._text = updt_options[i]._text;
-				temp._sort_order = updt_options[i]._sort_order;
-				temp.page_id = updt_options[i].page_id; // will this ever change?
-				temp.target_page = updt_options[i].target_page; // will this ever change?
-				temp.story_id = updt_options[i].story_id; // will this ever change?
-				temp.updated_by_user = req.user._id;
+	else {
+		update_options_prom = Option.find({_id: {$in: updt_option_ids}}).then(
+			// success
+			function(options) {
+				var db_updt_options_dict = array_to_dict(options), to_write = [], temp;
+				front_update_options.forEach(function(o) {
+					temp = db_updt_options_dict[o._id];
+					temp._text = o._text;
+					temp._sort_order = o._sort_order;
+					temp.page_id = o.page_id; 
+					temp.target_page = o.target_page;
+					temp.story_id = o.story_id;
+					temp.updated_by_user = req.user._id;
+					
+					to_write.push(temp.save());
+				});
 				
-				updt_options_finished.push(temp);
+				return Q.all(to_write);
+			},
+			// fail
+			function(err) {
+				console.log("Option.find in save_pages failed with: ", err);
+				return Q.reject(err);
 			}
-			
-			// now update
-			var save_option_promises = [];
-			for (i = 0; i < updt_options_finished.length; i++) {
-				save_option_promises.push(updt_options_finished[i].save());
-			}
-			
-			Q.all(save_option_promises).then(
-				// success
-				function(result) {
-					//console.log("update save_option_promises finished");
-					finished.options.updates = true;
-					check_finished();
-				},
-				// fail
-				function(err) {
-					console.log("update save_option_promises failed with: ", err);
-					res.status(500);
-					res.send({message: "error updating options", err: err});
-				}
-			);
-		},
+		);
+	}
+	
+	// now line them all up
+	Q.all([insert_pages_prom, insert_options_prom, update_pages_prom, update_options_prom]).then(
+		// success
+		function() {
+			res.send({message: "finished inserting and updating"});
+		}, 
 		// fail
 		function(err) {
-			console.log("Option.find for updt_option_ids failed with: ", err);
-			// should this have a q.reject()? look into whole mongoose promise quesiton
-			return new Error(err);
+			res.send({message: "error inserting or updating pages", err: err});
 		}
 	);
 	
-	// insert new pages
-	if (new_pages.length) {
-		Page.insertMany(new_pages).then(
-			// success
-			function(result) {
-				//console.log("inserted new pages with result: ", result);
-				finished.pages.inserts = true;
-				check_finished();
-			},
-			// fail
-			function(err) {
-				console.log("save pages insertMany call failed with: ", err);
-				// should this have a q.reject()? look into the whole mongoose promise question
-				return new Error(err);
-			}
-		);
-	}
-	
-	// insert new options
-	if (new_options.length) {
-		Option.insertMany(new_options).then(
-			// success
-			function(result) {
-				//console.log("inserted new options with result: ", result);
-				finished.options.inserts = true;
-				check_finished();
-			},
-			// fail
-			function(err) {
-				console.log("save options insertMany call failed with: ", err);
-				// should this have a q.reject()? look into the whole mongoose promise question
-				return new Error(err);
-			}
-		);
-	}
-	
-	function check_finished() {
-		//console.log("check_finished called");
-		if (finished.pages.inserts && finished.pages.updates && finished.options.inserts && finished.options.updates) {
-			//console.log("done");
-			res.send({message: "finished inserting and updating"});
-		}
-	}
-	
-	// utility thing
+	// utility thing used in update query
 	function array_to_dict(arr) {
 		var dict = {};
 		arr.forEach(function(itm) {
