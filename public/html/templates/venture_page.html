@@ -25,7 +25,7 @@
 										ng-click = "v_page.toggle_collapsed(page)">{{page.ui.cx_collapsed ? "+" : "-"}}</strong>
 					<h6 class = "panel-head-title">{{page.disp_title()}}</h6>
 					<div class = "panel-head-buttons">
-						<strong ng-if = "page.modified">*</strong>
+						<strong ng-if = "page.is_modified()">*</strong>
 					</div>
 				</header>
 				<p class = "picker-text">{{page.disp_text()}}</p>

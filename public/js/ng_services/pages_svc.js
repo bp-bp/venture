@@ -886,6 +886,23 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return options;
 	};
 	
+	// .modified boolean flag on Page object indicates whether the page itself has been modified, 
+	// but this guy here will check if the page contains options that have been modified as well.
+	// used on front-end to indicate if there is data on the page to be saved.
+	this.Page.prototype.is_modified = function() {
+		if (this.modified) {
+			return true;
+		}
+		var options = this.get_options(), mod = false;
+		options.forEach(function(o) {
+			if (o.modified) {
+				mod = true;
+			}
+		});
+		
+		return mod;
+	};
+	
 	this.Page.prototype.get_parent_page = function() {
 		if (! this.source_option) {
 			return null;

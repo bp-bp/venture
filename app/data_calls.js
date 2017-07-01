@@ -1083,6 +1083,48 @@ module.exports.get_descendants = function(req, res) {
 	}
 };
 
+function detect_sort_order_gaps(opts) {
+	var sorted = opts.sort(sort_order_compare);
+	var c = 0, gap = false;
+	sorted.forEach(function(o, i) {
+		// remember _sort_order is one-indexed, not zero
+		c += 1;
+		if ((i + 1) != o._sort_order) {
+			// something goes here
+		}
+		
+	});
+}
+
+function sort_order_compare(a, b) {
+	return a._sort_order - b._sort_order;
+}
+
+function get_option_siblings(opt) {
+	return Option.find({page_id: opt.page_id}).then(
+		// success
+		function(opts) {
+			var idx;
+			
+			opts.forEach(function(o, i) {
+				if (o._id === opt._id) {
+					idx = i;
+				}
+			});
+			
+			if (idx > -1) {
+				opts.splice(idx, -1);
+			}
+			
+			return opts;
+		},
+		// fail
+		function(err) {
+			return Q.reject(err);
+		}
+	);
+}
+
 // master delete handler for pages and options
 // add user check 
 module.exports.delete = function(req, res) {
@@ -1095,9 +1137,9 @@ module.exports.delete = function(req, res) {
 	page_id = req.params.page === "null" ? null : req.params.page;
 	option_id = req.params.option === "null" ? null : req.params.option;
 	
-	// just handle options first... have a check for nulls and then define 
-	// self-resolving promise, call .all() at the end?
+	// if we were passed an option
 	if (option_id) {
+		// get all of the option's descendants (pages and options both)
 		get_option_descendants(option_id).then(
 			// success
 			function(results) {
