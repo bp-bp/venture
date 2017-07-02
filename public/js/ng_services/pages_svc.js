@@ -10,11 +10,9 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	var srv = this;
 	
 	this.stories_rsc = $resource( 	"/stories/:story/?for_edit=:for_edit"
-									//, {get: {isArray: true}}
 									, {story: "@story"}
 								);
 	
-	// specifying a different url for delete action is not working, seems to be using default url
 	this.rsc = $resource(	"/pages/:page/?first=:first"
 								, {page: "@page", first: "@first"}
 								, {	update: {method: "PUT", isArray: true} 
@@ -30,36 +28,11 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	this.read_rsc = $resource( 		"/read/:story/:page"
 									, {story: "@story", page: "@page"});
 	
-	// not using this?
-	this.get_page_lock = function(page_id) {
-		return $http.get("/page_lock/" + page_id).then(
-			// success
-			function(payload) {
-				console.log("get_page_lock success, got: ", payload);
-			}, 
-			// fail
-			function(err) {
-				console.log("get_page_lock failed with: ", err);
-			}
-		);
-	};
+	/**********  **********/
 	
-	// def not using this
-	this.branch_edit_page = function(story_id, page_id) {
-		return $http.get("/branch_edit/" + story_id + "/" + page_id).then(
-			// success
-			function(payload) {
-				console.log("branch_edit_page success, got: ", payload);
-				return payload;
-			}, 
-			// fail
-			function(err) {
-				console.log("branch_edit_page failed with: ", err);
-				throw new Error(err);
-			}
-		);
-	};
+	/********** backend data calls **********/
 	
+	/********** locks and branch edit **********/
 	this.branch_edit_option = function(story_id, option_id) {
 		return $http.get("/branch_edit/" + story_id + "/" + option_id).then(
 			// success
@@ -111,21 +84,8 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	this.read_page = function(story_id, page_id) {
-		return this.read_rsc.get({story: story_id, page: page_id}).$promise.then(
-			// success
-			function(payload) {
-				console.log("pages service read_page success, returned: ", payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("pages service read_page failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
-	
+	/********** stories **********/
+	// gets one story, bare, without pages
 	this.get_story = function(story_id) {
 		console.log("get_story called with: ", story_id);
 		return this.stories_rsc.get({story: story_id}).$promise.then(
@@ -143,6 +103,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
+	// gets all stories (bare, no pages) the user is allowed to see, or is allowed to edit, depending on mode
 	this.get_all_stories = function(user_mode) {
 		var for_edit = false;
 		if (user_mode === "for_edit") {
@@ -167,7 +128,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	// I think we're only ever going to do one at a time here...
+	// will handle more than one story passed as an array, but we're only going to send one at a time
 	this.save_stories = function(_stories) {
 		var stories = (_stories.constructor === Array) ? _stories : [_stories];
 		var i, mod = [], new_ones = [];
@@ -200,6 +161,22 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
+	/********** pages **********/
+	this.read_page = function(story_id, page_id) {
+		return this.read_rsc.get({story: story_id, page: page_id}).$promise.then(
+			// success
+			function(payload) {
+				console.log("pages service read_page success, returned: ", payload);
+				return payload;
+			},
+			// fail
+			function(err) {
+				console.log("pages service read_page failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
 	this.get_page_descendants = function(page_id) {
 		console.log("get_page_descendants called with: ", page_id);
 		return $http.get("/get_descendants/page/" + page_id).then(
@@ -216,6 +193,168 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
+	// using this?
+	this.get_page = function(obj) {
+		console.log("getting a page");
+		console.log("id: ", obj.id);
+		return this.rsc.get({page: obj.id}).$promise.then(
+			// success
+			function(payload) {
+				console.log("payload: ", payload);
+				var results = JSON.parse(JSON.stringify(payload));
+				var pages = results.pages, options = results.options;
+				var gotten_page = (pages.length === 0) ? null : pages[0];
+				
+				if (gotten_page) {
+					if (obj.replace_data) {
+						srv.clear_data();
+					}
+					gotten_page = new srv.Page(gotten_page);
+					srv.pages.push(gotten_page);
+				}
+				
+				if (options.length > 0) {
+					srv.options = srv.options.concat(options);
+				}
+				
+				return gotten_page;
+			},
+			// fail
+			function(err) {
+				console.log("get page failed");
+				console.log(err);
+				return err;
+			}
+		);
+	};
+	
+	this.delete_page = function(page_id) {
+		return this.pages_rsc.delete({page: page_id, option: "null"}).$promise.then(
+			// success
+			function(payload) {
+				console.log("pages.delete_page success, got: ", payload);
+				return payload;
+			},
+			// fail
+			function(err) {
+				console.log("pages.delete_page failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
+	// given a story get all its pages/options
+	this.load_pages_for_story = function(story) {
+		var story_id = story._id;
+		
+		return this.pages_rsc.get({story: story_id}).$promise.then(
+			// success
+			function(payload) {
+				console.log("load_pages_for_story in pages service returned: ", payload);
+				
+				var loaded_pages = payload.results.pages;
+				var i, init_obj;
+				
+				// returns true (received pages) or false (did not receive any pages), check for false here
+				if (! loaded_pages.length) {
+					return false;
+				}
+				
+				
+				loaded_pages.forEach(function(p) {
+					var str_option_ids = []
+					p.option_ids.forEach(function(o) {
+						srv.create_loaded_option(o);
+						str_option_ids.push(o._id);
+					});
+					p.option_ids = str_option_ids;
+					srv.create_loaded_page(p);
+				});
+				
+				srv.refresh_sorted_page_list();
+				
+				return true;
+				
+			},
+			// fail
+			function(err) {
+				console.log("load_pages_for_story in pages service failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
+	// only page/option save function, inserts and updates
+	// working, but ruins option_ids on pages before sending
+	// think about solution
+	this.save_all = function() {
+		//var srv = srv;
+		var i, send_obj = {}, p_to_save = [], p_to_update = [], o_to_save = [], o_to_update = [];
+		// split all our pages into to_save/to_update
+		for (i = 0; i < this.pages.length; i++) {
+			if (this.pages[i].is_new) {
+				p_to_save.push(this.pages[i]);
+			}
+			else if (this.pages[i].is_modified()) {
+				p_to_update.push(this.pages[i]);
+			}
+		}
+		
+		// for new pages, slot the options
+		p_to_save.forEach(function(p) {
+			//var srv = srv;
+			var real_options_list = [];
+			p.option_ids.forEach(function(id) {
+				var opt = srv.get_option_from_id(id);
+				real_options_list.push(opt);
+			});
+			p.option_ids = real_options_list;
+		});
+		
+		// now for update pages, slot only new/modified options,
+		// we will not send to server those that don't need to be rewritten
+		p_to_update.forEach(function(p) {
+			//var srv = srv;
+			var real_options_list = [];
+			p.option_ids.forEach(function(id) {
+				var opt = srv.get_option_from_id(id);
+				if (opt.is_new || opt.modified) {
+					real_options_list.push(opt);
+				}
+			});
+			p.option_ids = real_options_list;
+		});
+		
+		
+		send_obj = {pages: {to_save: p_to_save, to_update: p_to_update}};
+		
+		// to use on success
+		function demodify(itm) {
+			itm.is_new = false;
+			itm.modified = false;
+		}
+		
+		// send to server
+		return this.pages_rsc.save(send_obj).$promise.then(
+			// success
+			function(payload) {
+				console.log("save_all success");
+				console.log(payload);
+				send_obj.pages.to_save.map(demodify);
+				send_obj.pages.to_update.map(demodify);
+				//send_obj.options.to_save.map(demodify);
+				//send_obj.options.to_update.map(demodify);
+				return payload;
+			},
+			// fail
+			function(err) {
+				console.log("save_all in pages service failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
+	/********** options **********/
 	this.get_option_descendants = function(option_id) {
 		return $http.get("/get_descendants/option/" + option_id).then(
 			// success
@@ -231,12 +370,26 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	this.tree_rsc = $resource( 	"/trees/:root_id"
-								, {root_id: "@root_id"}
-								);
+	this.delete_option = function(option_id) {
+		return this.pages_rsc.delete({page: "null", option: option_id}).$promise.then(
+			// success
+			function(payload) {
+				console.log("pages.delete_options success, got: ", payload);
+				return payload;
+			},
+			// fail
+			function(err) {
+				console.log("pages.delete_option failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
+	
+	
+	/********** end back end data calls **********/
 	
 	this.clear_data = function() {
-		console.log("clearing pages data");
 		this.pages = [];
 		this.root_page = null;
 		this.options = [];
@@ -277,108 +430,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 			}
 		});
 		return story || null;
-	};
-	
-	// using this?
-	this.get_page = function(obj) {
-		console.log("getting a page");
-		console.log("id: ", obj.id);
-		return this.rsc.get({page: obj.id}).$promise.then(
-			// success
-			function(payload) {
-				console.log("payload: ", payload);
-				var results = JSON.parse(JSON.stringify(payload));
-				var pages = results.pages, options = results.options;
-				var gotten_page = (pages.length === 0) ? null : pages[0];
-				
-				if (gotten_page) {
-					if (obj.replace_data) {
-						srv.clear_data();
-					}
-					gotten_page = new srv.Page(gotten_page);
-					srv.pages.push(gotten_page);
-				}
-				
-				if (options.length > 0) {
-					srv.options = srv.options.concat(options);
-				}
-				
-				return gotten_page;
-			},
-			// fail
-			function(err) {
-				console.log("get page failed");
-				console.log(err);
-				return err;
-			}
-		);
-	};
-	
-	this.delete_option = function(option_id) {
-		return this.pages_rsc.delete({page: "null", option: option_id}).$promise.then(
-			// success
-			function(payload) {
-				console.log("pages.delete_options success, got: ", payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("pages.delete_option failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
-	
-	this.delete_page = function(page_id) {
-		return this.pages_rsc.delete({page: page_id, option: "null"}).$promise.then(
-			// success
-			function(payload) {
-				console.log("pages.delete_page success, got: ", payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("pages.delete_page failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
-	
-	// we checked for child pages below, but we're only sending the option to delete
-	// we'll check again and decide what to delete on the server in case there's a front/backend mismatch for some reason
-	// cx_ind is a boolean, if true then children are present and 
-	// we'll need to reload whole tree after delete is finished
-	this.xdelete_option = function(opt, cx_ind) {
-		console.log("delete_option called");
-		// only sending one option at a time
-		var send_obj = {page: "hi", option: opt._id};
-		
-		// no need for this... do it on backend
-		function clean_up_parent(payload) {
-			console.log("got this: ", payload);
-			// now that option and its children are deleted on backend, remove the deleted option's id
-			// from parent page's option_ids array
-			var parent_page = opt.get_parent_page(), i;
-			for (i = 0; i < parent_page.option_ids.length; i++) {
-				if (opt._id === parent_page.option_ids[i]) {
-					parent_page.option_ids.splice(i, 1);
-				}
-			}
-		}
-		
-		return this.rsc.delete(send_obj).$promise.then(
-			// success
-			function(payload) {
-				console.log("delete option success");
-				console.log(payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("pages.delete_option failed with: ", err);
-				return err;
-			}
-		);
 	};
 	
 	this.create_loaded_page = function(loaded) {
@@ -432,150 +483,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return option;
 	};
 	
-	this.load_pages_for_story = function(story) {
-		var story_id = story._id;
-		
-		return this.pages_rsc.get({story: story_id}).$promise.then(
-			// success
-			function(payload) {
-				console.log("load_pages_for_story in pages service returned: ", payload);
-				
-				var loaded_pages = payload.results.pages;
-				var loaded_options = payload.results.options;
-				var i, init_obj;
-				
-				// returns true (received pages) or false (did not receive any pages), check for false here
-				if (! loaded_pages.length) {
-					return false;
-				}
-				
-				// build our pages
-				for (i = 0; i < loaded_pages.length; i++) {
-					srv.create_loaded_page(loaded_pages[i]);
-				}
-				
-				// now options
-				for (i = 0; i < loaded_options.length; i++) {
-					srv.create_loaded_option(loaded_options[i]);
-				}
-				
-				srv.refresh_sorted_page_list();
-				
-				return true;
-				
-			},
-			// fail
-			function(err) {
-				console.log("load_pages_for_story in pages service failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	}
-	
-	this.save_page = function(_pages) {
-		console.log("save_page called");
-		console.log("_pages: ", _pages);
-		var pages = (_pages.constructor === Array) ? _pages : [_pages];
-		console.log("pages: ", pages);
-		var i, options = [];
-		for (i = 0; i < pages.length; i++) {
-			options = options.concat(pages[i].get_options());
-		}
-		
-		console.log("options: ", options);
-		
-		// fix here for multiple pages
-		var send_obj = {pages: pages, options: options};
-		return this.pages_rsc.save(send_obj).$promise.then(
-			// success
-			function(payload) {
-				console.log("save page success");
-				console.log(payload);
-				return payload;
-			},
-			// fail
-			function(payload) {
-				console.log("save page fail");
-				console.log(payload);
-				return payload;
-			}
-		);
-	};
-	
-	this.update_page = function(_pages) {
-		console.log("update_page called");
-		var pages = (_pages.constructor === Array) ? _pages : [_pages];
-		console.log("pages: ", pages);
-		var i, options = [];
-		for (i = 0; i < pages.length; i++) {
-			options = options.concat(pages[i].get_options());
-		}
-		
-		var send_obj = {pages: pages, options: options};
-		return this.pages_rsc.update(send_obj).$promise.then(
-			// success
-			function(payload) {
-				console.log("update_page success");
-				console.log(payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("update_page failed with ", err);
-				$q.reject(err);
-			}
-		);
-	};
-	
-	this.save_all = function() {
-		var i, send_obj = {}, p_to_save = [], p_to_update = [], o_to_save = [], o_to_update = [];
-		// split all our pages into to_save/to_update
-		for (i = 0; i < this.pages.length; i++) {
-			if (this.pages[i].is_new) {
-				p_to_save.push(this.pages[i]);
-			}
-			else if (this.pages[i].modified) {
-				p_to_update.push(this.pages[i]);
-			}
-		}
-		
-		// same deal with options
-		for (i = 0; i < this.options.length; i++) {
-			if (this.options[i].is_new) {
-				o_to_save.push(this.options[i]);
-			}
-			else if (this.options[i].modified) {
-				o_to_update.push(this.options[i]);
-			}
-		}
-		
-		send_obj = {pages: {to_save: p_to_save, to_update: p_to_update}, options: {to_save: o_to_save, to_update: o_to_update}};
-		
-		// to use on success
-		function demodify(itm) {
-			itm.is_new = false;
-			itm.modified = false;
-		}
-		
-		// send to server
-		return this.pages_rsc.save(send_obj).$promise.then(
-			// success
-			function(payload) {
-				console.log("save_all success");
-				console.log(payload);
-				send_obj.pages.to_save.map(demodify);
-				send_obj.pages.to_update.map(demodify);
-				send_obj.options.to_save.map(demodify);
-				send_obj.options.to_update.map(demodify);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("save_all in pages service failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
 	this.create_new_page = function(init) {
 		init.is_new = true;
 		var page = new this.Page(init);
@@ -586,6 +493,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return page;
 	};
 	
+	/* types */
 	this.Story = function(init) {
 		var that = this;
 		this.type = "story";
@@ -677,9 +585,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return this._description ? this._description : "...";
 	};
 	
-	/*this.Story.prototype.created_by = function(user_id) {
-		if (this.
-	};*/
 	
 	// created_by should already be on init obj
 	this.create_new_story = function(init) {
@@ -691,7 +596,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	};
 	
 	this.Page = function(init) {
-		//console.log("init: ", init);
 		var that = this;
 		this.type = "page";
 		this.first = init.hasOwnProperty("first") ? init.first : false;

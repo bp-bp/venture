@@ -8,7 +8,8 @@ const Hashids = require("hashids");
 const hashids = new Hashids();
 const User = require("./models/user.js");
 const Story = require("./models/story.js");
-const data_calls = require("./data_calls.js");
+const page_calls = require("./page_calls.js");
+const story_calls = require("./story_calls.js");
 
 const ObjectId = require("mongoose").Types.ObjectId;
 
@@ -21,7 +22,7 @@ function requires_login(req, res, next) {
 	next();
 }
 
-// currently does nothing, handling this in data_calls
+// currently does nothing, handling this in page_calls
 function check_auth_for_rsc(call_type) {
 	console.log("here is check_auth_for_rsc called with: ", call_type);
 	return function(req, res, next) {
@@ -60,21 +61,14 @@ module.exports = function(app) {
 	// unique ids for the front-end
 	app.get("/gen_id", function(req, res) {
 		var id = new ObjectId().toHexString();
-		console.log("id: ", id);
 		res.send(id);
-		//res.send(new ObjectID);
-		//res.send(uuid.v1());
-		//console.log("microtime: ", process.hrtime());
-		//res.send(hashids.encode(new Date().getTime()));
 	});
 	
 	// short id for page objects ancestor path
-	app.get("/page_short_id/:story", requires_login, data_calls.get_page_short_id);
+	app.get("/page_short_id/:story", requires_login, page_calls.get_page_short_id);
 	
 	// login/signup stuff
 	app.post("/signup", function(req, res) {
-		console.log("signup route");
-		console.log("req.body: ", req.body.user);
 		var passed_user = req.body.user;
 		
 		// check if user with this username already exists
@@ -131,9 +125,9 @@ module.exports = function(app) {
 	});
 	
 	// stories api
-	app.get("/stories/:story", data_calls.get_stories);
-	app.get("/stories", check_auth_for_rsc("stories"), data_calls.get_stories);
-	app.post("/stories", requires_login, data_calls.save_stories);
+	app.get("/stories/:story", story_calls.get_stories);
+	app.get("/stories", check_auth_for_rsc("stories"), story_calls.get_stories);
+	app.post("/stories", requires_login, story_calls.save_stories);
 	
 	app.get("/check_auth", check_login);
 	
@@ -143,29 +137,29 @@ module.exports = function(app) {
 	});
 	
 	// pages api
-	app.post("/pages", requires_login, data_calls.save_pages);
-	app.get("/pages", data_calls.load_pages_for_story);
-	app.delete("/pages/:page/options/:option", requires_login, data_calls.delete);
+	app.post("/pages", requires_login, page_calls.save_pages);
+	app.get("/pages", page_calls.load_pages_for_story);
+	app.delete("/pages/:page/options/:option", requires_login, page_calls.delete);
 	
-	app.get("/get_descendants/:type/:id", requires_login, data_calls.get_descendants);
+	app.get("/get_descendants/:type/:id", requires_login, page_calls.get_descendants);
 	
 	// read api
-	app.get("/read/:story/:page", data_calls.read_page);
-	app.get("/read/:story", data_calls.read_page);
+	app.get("/read/:story/:page", page_calls.read_page);
+	app.get("/read/:story", page_calls.read_page);
 	
 	// branch edit -- pages -- not using
-	//app.get("/branch_edit/:story/:page", requires_login, data_calls.branch_edit_page);
+	//app.get("/branch_edit/:story/:page", requires_login, page_calls.branch_edit_page);
 	// branch edit -- options 
-	app.get("/branch_edit/:story/:option", requires_login, data_calls.branch_edit_option);
+	app.get("/branch_edit/:story/:option", requires_login, page_calls.branch_edit_option);
 	// for now, this one will do the same thing as /branch_edit, just want to be able to keep track
 	// of different types of calls
-	app.get("/renew_option_lock/:story/:option", requires_login, data_calls.branch_edit_option);
+	app.get("/renew_option_lock/:story/:option", requires_login, page_calls.branch_edit_option);
 	// TEST
-	//app.get("/renew_option_lock/:story/:option", requires_login, data_calls.test);
-	app.get("/unlock_option/:story/:option", requires_login, data_calls.unlock_option);
+	//app.get("/renew_option_lock/:story/:option", requires_login, page_calls.test);
+	app.get("/unlock_option/:story/:option", requires_login, page_calls.unlock_option);
 	
 	// lock for branch edit
-	//app.get("/page_lock/:page", requires_login, data_calls.get_page_lock);
+	//app.get("/page_lock/:page", requires_login, page_calls.get_page_lock);
 	
 	// test
 	function test_good(req, res) {

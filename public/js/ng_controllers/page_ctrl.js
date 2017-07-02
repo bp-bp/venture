@@ -44,7 +44,6 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 	};
 	
 	self.renew_branch_edit_option_lock = function() {
-		console.log("renewing option lock");
 		self.pages.renew_option_lock(self.current.story._id, self.branch_edit_option).then(
 			// success
 			function(payload) {
@@ -124,7 +123,6 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 	};
 	
 	// delete stuff
-	// page here
 	self.delete_page = function(page) {
 		var page_id = page._id;
 		
@@ -147,7 +145,6 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 		);
 	};
 	
-	// option here
 	self.delete_option = function(option) {
 		// some checks on this?
 		var option_id = option._id;
@@ -212,7 +209,6 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 	};
 	
 	// do our initial setup
-	console.log("$routeParams: ", $routeParams);
 	// if we've launched this as a branch edit rather than whole-story edit
 	if ($routeParams.mode && $routeParams.mode === "branch_edit" && $routeParams.new_page && $routeParams.option) {
 		self.mode = "branch_edit";
@@ -230,7 +226,6 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 	
 	if (! self.pages.page && self.current.story) {
 		self.populate_pages();
-		//self.pages.root_page.set_sort_string();
 	}
 }
 angular.module("app").controller("venture_page_ctrl", ["users", "pages", "current", "$location", "$routeParams", "$interval", venture_page_ctrl]);
