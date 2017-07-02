@@ -1,4 +1,4 @@
-// app/data_calls.js
+// app/page_calls.js
 "use strict"
 
 const Q = require("q");
@@ -19,6 +19,7 @@ function zero_pad(num) {
 	return q;
 }
 
+// don't think we need these anymore, doing this on the front-end
 // takes a list of pages returned from a query that .populate()'d its option_ids, 
 // pulls out the populated option objects and tucks them into their own array on return obj,
 // then replaces them in option_ids array with the original ids
@@ -49,7 +50,7 @@ module.exports.test = function(req, res) {
 };
 
 // increments the short_id counter on the requested story object and returns the incremented value
-// used in ancestor_path
+// used in ancestor_path on page object
 module.exports.get_page_short_id = function(req, res) {
 	var story_id = req.params.story;
 	

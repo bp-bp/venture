@@ -34,7 +34,7 @@ const page_schema = mongoose.Schema({
 	, _text: String
 	, first: Boolean
 	//, source_option: {type: ObjectId, ref: "Option"}
-	, source_option: option_schema
+	, source_option: {type: ObjectId, ref: "Page.option_ids"}
 	, created_by_user: {type: ObjectId, ref: "User"}
 	, updated_by_user: {type: ObjectId, ref: "User"}
 	, story_id: {type: ObjectId, ref: "Story"}
