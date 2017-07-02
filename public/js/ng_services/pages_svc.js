@@ -300,6 +300,44 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 			}
 		}
 		
+		function make_backend_page(p) {
+			var ret = {
+				_id: p._id
+				, short_id: p.short_id
+				, ancestor_path: p.ancestor_path
+				, _title: p._title
+				, _text: p._text
+				, first: p.first
+				, story_id: p.story_id
+			};
+			
+			// handle options
+			ret.source_option = make_backend_option(srv.get_option_from_id(p.source_option));
+			ret.option_ids = [];
+			p.option_ids.forEach(function(o) {
+				ret.option_ids.push(make_backend_option(srv.get_option_from_id(o)));
+			});
+			
+			return ret;
+		}
+		
+		function make_backend_option(o) {
+			
+		}
+		
+		// trying something else, creating special objects to send
+		var to_save = [], to_update = [], blank_p = {}, blank_o = {};
+		p_to_save.forEach(function(p) {
+			blank_p._id = p._id;
+			blank_p.short_id = p.short_id;
+			blank_p.ancestor_path = p.ancestor_path;
+			blank_p._title = p._title;
+			blank_p._text = p._text;
+			blank_p.first = p.first;
+			blank_p.source_option = p.source_option
+		};
+		
+		
 		// for new pages, slot the options
 		p_to_save.forEach(function(p) {
 			//var srv = srv;
