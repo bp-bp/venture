@@ -30,11 +30,11 @@ module.exports.get_stories = function(req, res) {
 	}
 	// otherwise fetch the story requested
 	else {
-		Story.find({_id: req.params.story, $or: [{_public_view: true}, {_public_view: false, created_by_user: user_id}]}).then(
+		Story.findOne({_id: req.params.story, $or: [{_public_view: true}, {_public_view: false, created_by_user: user_id}]}).then(
 			// success
 			function(story) {
 				//console.log("get one story got: ", story);
-				res.send({message: "success", stories: story});
+				res.send({message: "success", story: story});
 			},
 			// fail
 			function(err) {

@@ -185,7 +185,6 @@ module.exports.save_pages = function(req, res) {
 						// present
 						
 						if (o.is_new) {
-							// option is not getting created, no error
 							db_page.option_ids.push({
 								_id: o._id
 								, _text: o._text
@@ -202,9 +201,9 @@ module.exports.save_pages = function(req, res) {
 
 							db_opt._text = o._text;
 							db_opt._sort_order = o._sort_order;
-							db_opt.page_id = o.page_id;	// these really shouldn't ever change
-							db_opt.target_page = o.target_page; // these really shouldn't ever change
-							db_opt.story_id = o.story_id; // these really shouldn't ever change
+							//db_opt.page_id = o.page_id;	// these really shouldn't ever change
+							//db_opt.target_page = o.target_page; // these really shouldn't ever change
+							//db_opt.story_id = o.story_id; // these really shouldn't ever change
 							db_opt.updated_by_user = req.user._id;
 						}
 					});
@@ -244,189 +243,11 @@ module.exports.save_pages = function(req, res) {
 	}
 };
 
-// save pages and options
-module.exports.xsave_pages = function(req, res) {
-	var save_pages = req.body.pages.to_save;
-	var front_update_pages = req.body.pages.to_update;
-	var save_options = req.body.options.to_save;
-	var front_update_options = req.body.options.to_update;
-	var finished = {pages: {inserts: false, updates: false}, options: {inserts: false, updates: false}};
-	
-	// all our promises
-	var insert_pages_prom, update_pages_prom, insert_options_prom, update_options_prom;
-	
-	// create new page objects from schema, build list for insert
-	var i, new_page, new_pages = [], updt_page, fetched_updt_pages = [], updt_page_ids = [], updt_pages_finished = [];
-	save_pages.forEach(function(p) {
-		new_page = new Page();
-		new_page._id = p._id;
-		new_page.short_id = p.short_id;
-		new_page.ancestor_path = p.ancestor_path;
-		new_page._title = p._title;
-		new_page._text = p._text;
-		new_page.first = p.first;
-		new_page.source_option = p.source_option;
-		new_page.story_id = p.story_id;
-		new_page.option_ids = p.option_ids;
-		new_page.created_by_user = req.user._id;
-		new_page.updated_by_user = req.user._id;
-		
-		new_pages.push(new_page);
-	});
-	
-	if (! new_pages.length) {
-		insert_pages_prom = Q.resolve();
-	}
-	else {
-		insert_pages_prom = Page.insertMany(new_pages).then(
-			// success
-			function(results) {
-				// nothing here, just want to handle failure
-			},
-			// fail
-			function(err) {
-				console.log("Page.insertMany failed in save_pages with: ", err);
-				return new Error(err);
-			}
-		);
-	}
-	
-	// now updating pages
-	// first get a list of ids for query
-	front_update_pages.forEach(function(p) {
-		updt_page_ids.push(p._id);
-	});
-	
-	// now set up the promise and do the query
-	if (! front_update_pages.length) {
-		update_pages_prom = Q.resolve();
-	}
-	else {
-		update_pages_prom = Page.find({_id: {$in: updt_page_ids}}).then(
-			// success
-			function(pages) {
-				var db_updt_pages_dict = array_to_dict(pages), to_write = [], temp;
-				front_update_pages.forEach(function(p) {
-					temp = db_updt_pages_dict[p._id];
-					
-					temp._title = p._title;
-					temp._text = p._text;
-					temp.first = p.first;
-					temp.source_option = p.source_option;
-					temp.story_id = p.story_id;
-					temp.option_ids = p.option_ids;
-					temp.updated_by_user = req.user._id;
-					
-					to_write.push(temp.save());
-				});
-				
-				return Q.all(to_write);
-			},
-			// fail
-			function(err) {
-				console.log("Page.find for update pages failed with: ", err);
-				return new Error(err);
-			}
-		);
-	}
-	
-	// now options, first set up new ones
-	var new_option, new_options = [];
-	save_options.forEach(function(o) {
-		new_option = new Option();
-		new_option._id = o._id;
-		new_option._text = o._text;
-		new_option._sort_order = o._sort_order;
-		new_option.page_id = o._page_id;
-		new_option.target_page = o.target_page;
-		new_option.story_id = o.story_id;
-		new_option.created_by_user = req.user._id;
-		new_option.updated_by_user = req.user._id;
-		
-		new_options.push(new_option);
-	});
-	
-	if (! new_options.length) {
-		insert_options_prom = Q.resolve();
-	}
-	else {
-		insert_options_prom = Option.insertMany(new_options).then(
-			// success
-			function(results) {
-				// nothing here, just want to handle failure
-			},
-			// fail
-			function(err) {
-				console.log("Option.insertMany failed in save_pages with: ", err);
-				return Q.reject(err);
-			}
-		);
-	}
-	
-	// now the updates, first get a list of ids for query
-	var updt_option_ids = [];
-	front_update_options.forEach(function(o) {
-		updt_option_ids.push(o._id);
-	});
-	
-	// now set up the promise with query
-	if (! front_update_options.length) {
-		update_options_prom = Q.resolve();
-	}
-	else {
-		update_options_prom = Option.find({_id: {$in: updt_option_ids}}).then(
-			// success
-			function(options) {
-				var db_updt_options_dict = array_to_dict(options), to_write = [], temp;
-				front_update_options.forEach(function(o) {
-					temp = db_updt_options_dict[o._id];
-					temp._text = o._text;
-					temp._sort_order = o._sort_order;
-					temp.page_id = o.page_id; 
-					temp.target_page = o.target_page;
-					temp.story_id = o.story_id;
-					temp.updated_by_user = req.user._id;
-					
-					to_write.push(temp.save());
-				});
-				
-				return Q.all(to_write);
-			},
-			// fail
-			function(err) {
-				console.log("Option.find in save_pages failed with: ", err);
-				return Q.reject(err);
-			}
-		);
-	}
-	
-	// now line them all up
-	Q.all([insert_pages_prom, insert_options_prom, update_pages_prom, update_options_prom]).then(
-		// success
-		function() {
-			res.send({message: "finished inserting and updating"});
-		}, 
-		// fail
-		function(err) {
-			res.send({message: "error inserting or updating pages", err: err});
-		}
-	);
-	
-	// utility thing used in update query
-	function array_to_dict(arr) {
-		var dict = {};
-		arr.forEach(function(itm) {
-			dict[itm._id] = itm;
-		});
-		return dict;
-	}
-};
 
-// given a story_id, get pages and options
+
 // used for edit, currently only creating user can globally edit existing pages.
 // stories that allow branch_edit cannot be edited this way even by creating user
 // add user check
-
 function fetch_pages_for_story(story_id) {
 	var return_obj = {pages: []};
 	return Page.find({story_id: story_id}).then(
@@ -443,37 +264,13 @@ function fetch_pages_for_story(story_id) {
 	);
 };
 
-function xfetch_pages_for_story(story_id) {
-	var return_obj = {pages: [], options: []};
-	return Page.find({story_id: story_id}).populate("option_ids").then(
-		// success
-		function(result) {
-			var i, q;
-			for (i = 0; i < result.length; i++) {
-				for (q = 0; q < result[i].option_ids.length; q++) {
-					return_obj.options.push(result[i].option_ids[q]);
-					result[i].option_ids[q] = result[i].option_ids[q]._id;
-				}
-				return_obj.pages.push(result[i]);
-			}
-			return return_obj;
-			//res.send({message: "load_pages_for_story success", results: return_obj});
-		},
-		// fail
-		function(err) {
-			console.log("Page.find/populate in load_pages_for_story failed with: ", err);
-			return Q.reject(err);
-			//res.send({message: "Page.find/populate in load_pages_for_story failed", err: err});
-		}
-	);
-}
 
+// given a story_id, get pages and options
 // used for editing pages within a story, see comments on fetch_pages_for_story
 module.exports.load_pages_for_story = function(req, res) {
 	console.log("load_pages_for_story");
 	var story_id = req.query.story;
 	var user_id = req.user && req.user._id ? req.user._id : null;
-	//var return_obj = {pages: [], options: []};
 	
 	// check that we got the params we need and a logged-in user
 	if (! story_id) {
@@ -519,12 +316,14 @@ module.exports.load_pages_for_story = function(req, res) {
 
 // read stuff
 function get_page_for_read(story_id, page_id) {
+	console.log("get_page_for_read, story_id: ", story_id, " page_id: ", page_id);
 	// if we weren't passed a page_id we should get the first page of the story
 	if (! page_id) {
 		console.log("no page_id");
-		return Page.findOne({story_id: story_id, first: true}).populate("option_ids").then(
+		return Page.findOne({story_id: story_id, first: true}).then(
 			// success
 			function(page) {
+				console.log("here, page: ", page);
 				var return_obj = {message: "success", page_found: true, sought_first: true, page: null, options: []}, i;
 				if (! page) {
 					return_obj.page_found = false;
@@ -533,10 +332,10 @@ function get_page_for_read(story_id, page_id) {
 				}
 				
 				// fix options
-				for (i = 0; i < page.option_ids.length; i++) {
-					return_obj.options.push(page.option_ids[i]);
-					page.option_ids[i] = page.option_ids[i]._id;
-				}
+				//for (i = 0; i < page.option_ids.length; i++) {
+				//	return_obj.options.push(page.option_ids[i]);
+				//	page.option_ids[i] = page.option_ids[i]._id;
+				//}
 				return_obj.page = page;
 				return return_obj;
 			},
@@ -560,16 +359,14 @@ function get_page_for_read(story_id, page_id) {
 					return_obj.page_found = false;
 					return_obj.message = "page not found"
 					return return_obj;
-					//res.send(return_obj);
 				}
 				else {
-					for (i = 0; i < page.option_ids.length; i++) {
-						return_obj.options.push(page.option_ids[i]);
-						page.option_ids[i] = page.option_ids[i]._id;
-					}
+					//for (i = 0; i < page.option_ids.length; i++) {
+					//	return_obj.options.push(page.option_ids[i]);
+					//	page.option_ids[i] = page.option_ids[i]._id;
+					//}
 					return_obj.page = page;
 					return return_obj;
-					//res.send(return_obj);
 				}
 			},
 			// fail

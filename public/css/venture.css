@@ -171,6 +171,7 @@ fieldset legend {
 @media (min-width: 750px) {
 	.center-column {
 		width: 50%;
+		min-width: 750px;
 	}
 }
 
@@ -305,9 +306,6 @@ fieldset legend {
 	display: inline-block;
 	border: 1px solid #8c8c8c;
 	border-radius: 3px;
-	/*width: 12rem;*/
-	/*height: 4rem;*/
-	/*text-align: center;*/
 	margin: 1rem;
 	padding: 1rem;
 }
@@ -342,6 +340,13 @@ fieldset legend {
 	margin: 0 auto;
 	text-align: left;
 }
+
+/* read stuff */
+.read-option {
+	border-top: none;
+	cursor: pointer;
+}
+
 /********** utilities **********/
 .spacer-bottom {
 	margin-bottom: 1.25rem;

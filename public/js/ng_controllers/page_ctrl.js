@@ -134,7 +134,7 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 				self.current.popup_data.popup_type = "delete_page";
 				self.current.popup_data.page_to_delete = page_id;
 				self.current.popup_data.pages = results.pages;
-				self.current.popup_data.options = results.options;
+				//self.current.popup_data.options = results.options;
 				self.current.popup_data.confirm_callback = self.finish_delete_page;
 				self.current.popup_visible = true;
 			},
@@ -157,7 +157,7 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 				self.current.popup_data.popup_type = "delete_option";
 				self.current.popup_data.option_to_delete = option_id;
 				self.current.popup_data.pages = results.pages;
-				self.current.popup_data.options = results.options;
+				//self.current.popup_data.options = results.options;
 				self.current.popup_data.confirm_callback = self.finish_delete_option;
 				self.current.popup_visible = true;
 			}, 

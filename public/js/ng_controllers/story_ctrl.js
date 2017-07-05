@@ -71,7 +71,7 @@ function venture_story_ctrl(users, pages, current, $location, $routeParams) {
 	};
 	
 	self.read_story = function(story) {
-		var id = story || self.current.story._id;
+		var id = story._id || self.current.story._id;
 		$location.path("/read").search({story: id});
 	};
 	

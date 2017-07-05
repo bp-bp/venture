@@ -75,9 +75,9 @@
 			
 			<!-- options -->
 			<div class = "option-repeater">
-				<article tabindex = 100 class = "option-box" ng-repeat = "option in v_page.current.page.get_options() | orderBy: '_sort_order'">
+				<article class = "option-box" ng-repeat = "option in v_page.current.page.get_options() | orderBy: '_sort_order'">
 					<strong class = "float-left">#{{option._sort_order}}</strong><h6>Option Text:</h6>
-					<textarea ng-model = "option.text" ng-model-options = "{getterSetter: true}"></textarea>
+					<textarea tabindex = 100 ng-model = "option.text" ng-model-options = "{getterSetter: true}"></textarea>
 					<div class = "equal-buttons"> <!-- god this is ugly, whitespace screws up the layout of the buttons -->
 						<button ng-click = "option.sort_up()"><i class = "fa fa-chevron-circle-up icon-4x"></i></button><button ng-click = "v_page.delete_option(option)"><i class = "fa fa-times-circle icon-4x"></i></button><button ng-click = "option.sort_down()"><i class = "fa fa-chevron-circle-down fa-icon-4x"></i></button>
 					</div>

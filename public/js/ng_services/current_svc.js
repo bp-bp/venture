@@ -12,7 +12,6 @@ angular.module("app").service("current", ["$interval", function($interval) {
 	
 	// not sure I'm using this
 	this.set_page = function(val) {
-		console.log("set_page()");
 		this.page = val;
 	};
 	
@@ -21,8 +20,6 @@ angular.module("app").service("current", ["$interval", function($interval) {
 		this.popup_visible = false;
 		this.popup_data = {popup_type: null}; // filled in by whatever controller is using the popup
 	};
-	this.popup_init();
-	//this.popup_visible = false;
-	//this.popup_data = {popup_type: null}; // filled in by whatever controller is using the popup
 	
+	this.popup_init();
 }]);

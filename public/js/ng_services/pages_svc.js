@@ -93,7 +93,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 			function(payload) {
 				console.log("get_story success");
 				console.log("got: ", payload);
-				return payload;
+				return srv.create_loaded_story(payload.story);
 			},
 			// fail
 			function(err) {
@@ -167,7 +167,24 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 			// success
 			function(payload) {
 				console.log("pages service read_page success, returned: ", payload);
-				return payload;
+				
+				// if we found a page, unpack the data
+				if (payload.page_found) {
+					var str_option_ids = [];
+					payload.page.option_ids.forEach(function(o) {
+						console.log("o: ", o);
+						srv.create_loaded_option(o);
+						str_option_ids.push(o._id);
+					});
+					payload.page.option_ids = str_option_ids;
+					var page = srv.create_loaded_page(payload.page);
+					return {page_found: true, sought_first: payload.sought_first, page: page};
+				}
+				else {
+					return {page_found: false, sought_first: payload.sought_first, page: null};
+				}
+				
+				//return payload;
 			},
 			// fail
 			function(err) {
@@ -285,86 +302,63 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	};
 	
 	// only page/option save function, inserts and updates
-	// working, but ruins option_ids on pages before sending
-	// think about solution
 	this.save_all = function() {
-		//var srv = srv;
-		var i, send_obj = {}, p_to_save = [], p_to_update = [], o_to_save = [], o_to_update = [];
-		// split all our pages into to_save/to_update
-		for (i = 0; i < this.pages.length; i++) {
-			if (this.pages[i].is_new) {
-				p_to_save.push(this.pages[i]);
+		var send_obj = {}, to_save = [], to_update = [];
+		// split all our pages into to_save and to_update, create backend save objects
+		this.pages.forEach(function(p) {
+			if (p.is_new) {
+				to_save.push(page_for_save(p));
 			}
-			else if (this.pages[i].is_modified()) {
-				p_to_update.push(this.pages[i]);
+			else if (p.is_modified()) {
+				to_update.push(page_for_save(p));
 			}
-		}
+		});
 		
-		function make_backend_page(p) {
+		function page_for_save(p) {
 			var ret = {
 				_id: p._id
 				, short_id: p.short_id
 				, ancestor_path: p.ancestor_path
+				, source_option: p.source_option
 				, _title: p._title
 				, _text: p._text
 				, first: p.first
 				, story_id: p.story_id
+				
+				, is_new: p.is_new
+				, modified: p.modified
 			};
 			
-			// handle options
-			ret.source_option = make_backend_option(srv.get_option_from_id(p.source_option));
+			// handle options -- only include new or modified options
 			ret.option_ids = [];
 			p.option_ids.forEach(function(o) {
-				ret.option_ids.push(make_backend_option(srv.get_option_from_id(o)));
+				var opt = srv.get_option_from_id(o);
+				if (opt.is_new || opt.modified) {
+					ret.option_ids.push(option_for_save(opt));
+				}
 			});
 			
 			return ret;
 		}
 		
-		function make_backend_option(o) {
+		function option_for_save(o) {
+			var ret = {
+				_id: o._id
+				, _text: o._text
+				, _sort_order: o._sort_order
+				, page_id: o.page_id
+				, target_page: o.target_page
+				, story_id: o.story_id
+				
+				, is_new: o.is_new
+				, modified: o.modified
+			};
 			
+			return ret;
 		}
 		
-		// trying something else, creating special objects to send
-		var to_save = [], to_update = [], blank_p = {}, blank_o = {};
-		p_to_save.forEach(function(p) {
-			blank_p._id = p._id;
-			blank_p.short_id = p.short_id;
-			blank_p.ancestor_path = p.ancestor_path;
-			blank_p._title = p._title;
-			blank_p._text = p._text;
-			blank_p.first = p.first;
-			blank_p.source_option = p.source_option
-		};
+		send_obj = {pages: {to_save: to_save, to_update: to_update}};
 		
-		
-		// for new pages, slot the options
-		p_to_save.forEach(function(p) {
-			//var srv = srv;
-			var real_options_list = [];
-			p.option_ids.forEach(function(id) {
-				var opt = srv.get_option_from_id(id);
-				real_options_list.push(opt);
-			});
-			p.option_ids = real_options_list;
-		});
-		
-		// now for update pages, slot only new/modified options,
-		// we will not send to server those that don't need to be rewritten
-		p_to_update.forEach(function(p) {
-			//var srv = srv;
-			var real_options_list = [];
-			p.option_ids.forEach(function(id) {
-				var opt = srv.get_option_from_id(id);
-				if (opt.is_new || opt.modified) {
-					real_options_list.push(opt);
-				}
-			});
-			p.option_ids = real_options_list;
-		});
-		
-		
-		send_obj = {pages: {to_save: p_to_save, to_update: p_to_update}};
 		
 		// to use on success
 		function demodify(itm) {
@@ -380,8 +374,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 				console.log(payload);
 				send_obj.pages.to_save.map(demodify);
 				send_obj.pages.to_update.map(demodify);
-				//send_obj.options.to_save.map(demodify);
-				//send_obj.options.to_update.map(demodify);
 				return payload;
 			},
 			// fail
@@ -423,8 +415,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	
-	
 	/********** end back end data calls **********/
 	
 	this.clear_data = function() {
@@ -442,8 +432,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	
 	// note that these are the same, clean up
 	this.prep_for_read = function() {
-		//console.log("clearing pages and options, retaining story");
-		// losing story too
 		this.pages = [];
 		this.root_page = null;
 		this.options = [];
@@ -521,6 +509,13 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return option;
 	};
 	
+	this.create_loaded_story = function(loaded) {
+		// double check that this works with .my_story
+		var story = this.Story(loaded); // just for stories, this works
+		this.stories.push(story); 
+		return story;
+	};
+	
 	this.create_new_page = function(init) {
 		init.is_new = true;
 		var page = new this.Page(init);
@@ -544,8 +539,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		this._public_view = init._public_view || false; // default these to false?
 		this._public_edit = init._public_edit || false; // default these to false?
 		
-		//this._id = init.hasOwnProperty("_id") ? init._id : srv.id.gen_id();
-		this.page_ids = init.page_ids || []; // do I need this, or am I good with pages having a story_id field?
+		this.page_ids = init.page_ids || []; // not using this...
 		if (this.is_new) {
 			this.modified = true;
 		}
@@ -632,6 +626,8 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		this.stories.push(story);
 		return story;
 	};
+	
+	
 	
 	this.Page = function(init) {
 		var that = this;
