@@ -1,3 +1,21 @@
+<div ng-if = "! v_read.ask_for_edit">
+	<section class = "panel center-column">
+		<h4 class = "spacer-bottom">{{v_read.current.page.disp_title()}}</h4>
+		{{v_read.current.page.disp_text()}}
+	</section>
+	
+	<article 	class = "panel read-option center-column spacer-top"
+				ng-repeat = "option in v_read.current.page.get_options()"
+				ng-click = "v_read.turn_page(option.target_page, option._id)">
+		{{option.text()}}
+	</article>
+</div>
+
+<div ng-if = "v_read.ask_for_edit">
+	
+</div>
+
+
 <div class = "v_read container">
 	<!-- title and page content -->
 	<div ng-if = "! v_read.ask_for_edit" class = "row">

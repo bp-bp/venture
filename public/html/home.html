@@ -7,6 +7,7 @@
 	<script type = "text/javascript" src = "../js/angular.min.js"></script>
 	<script type = "text/javascript" src = "../js/angular-resource.min.js"></script>
 	<script type = "text/javascript" src = "../js/angular-route.min.js"></script>
+	<script type = "text/javascript" src="https://use.fontawesome.com/a131fa6ff7.js"></script>
 	
 	<script type = "text/javascript" src = "../js/venture.js"></script>
 	<script type = "text/javascript" src = "../js/ng_services/id_svc.js"></script>
@@ -22,15 +23,19 @@
 	<script type = "text/javascript" src = "../js/ng_controllers/popup_ctrl.js"></script>
 	<script type = "text/javascript" src = "../js/ng_controllers/drop_down_ctrl.js"></script>
 	
-	<link rel = "stylehseet" href = "../css/normalize.css">
+	<!--<link rel = "stylehseet" href = "../css/normalize.css">
 	<link rel = "stylesheet" href = "../css/skeleton.css">
+	<link rel = "stylesheet" href = "../css/venture.css">-->
+	<link rel = "stylesheet" href = "../css/normalize.css">
 	<link rel = "stylesheet" href = "../css/venture.css">
 </head>
 
 <body ng-app = "app">
-	<venture-menu></venture-menu>
-	<!--<venture-login></venture-login>-->
-	<!--<venture-main></venture-main>-->
-	<div class = "tall" ng-view></div>
+	<div>
+		<venture-menu></venture-menu>
+		<!--<venture-login></venture-login>-->
+		<!--<venture-main></venture-main>-->
+		<div ng-view></div>
+	</div>
 </body>
 </html>

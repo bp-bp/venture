@@ -10,11 +10,9 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	var srv = this;
 	
 	this.stories_rsc = $resource( 	"/stories/:story/?for_edit=:for_edit"
-									//, {get: {isArray: true}}
 									, {story: "@story"}
 								);
 	
-	// specifying a different url for delete action is not working, seems to be using default url
 	this.rsc = $resource(	"/pages/:page/?first=:first"
 								, {page: "@page", first: "@first"}
 								, {	update: {method: "PUT", isArray: true} 
@@ -30,36 +28,11 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	this.read_rsc = $resource( 		"/read/:story/:page"
 									, {story: "@story", page: "@page"});
 	
-	// not using this?
-	this.get_page_lock = function(page_id) {
-		return $http.get("/page_lock/" + page_id).then(
-			// success
-			function(payload) {
-				console.log("get_page_lock success, got: ", payload);
-			}, 
-			// fail
-			function(err) {
-				console.log("get_page_lock failed with: ", err);
-			}
-		);
-	};
+	/**********  **********/
 	
-	// def not using this
-	this.branch_edit_page = function(story_id, page_id) {
-		return $http.get("/branch_edit/" + story_id + "/" + page_id).then(
-			// success
-			function(payload) {
-				console.log("branch_edit_page success, got: ", payload);
-				return payload;
-			}, 
-			// fail
-			function(err) {
-				console.log("branch_edit_page failed with: ", err);
-				throw new Error(err);
-			}
-		);
-	};
+	/********** backend data calls **********/
 	
+	/********** locks and branch edit **********/
 	this.branch_edit_option = function(story_id, option_id) {
 		return $http.get("/branch_edit/" + story_id + "/" + option_id).then(
 			// success
@@ -111,21 +84,8 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	this.read_page = function(story_id, page_id) {
-		return this.read_rsc.get({story: story_id, page: page_id}).$promise.then(
-			// success
-			function(payload) {
-				console.log("pages service read_page success, returned: ", payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("pages service read_page failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
-	
+	/********** stories **********/
+	// gets one story, bare, without pages
 	this.get_story = function(story_id) {
 		console.log("get_story called with: ", story_id);
 		return this.stories_rsc.get({story: story_id}).$promise.then(
@@ -133,7 +93,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 			function(payload) {
 				console.log("get_story success");
 				console.log("got: ", payload);
-				return payload;
+				return srv.create_loaded_story(payload.story);
 			},
 			// fail
 			function(err) {
@@ -143,6 +103,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
+	// gets all stories (bare, no pages) the user is allowed to see, or is allowed to edit, depending on mode
 	this.get_all_stories = function(user_mode) {
 		var for_edit = false;
 		if (user_mode === "for_edit") {
@@ -167,7 +128,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	// I think we're only ever going to do one at a time here...
+	// will handle more than one story passed as an array, but we're only going to send one at a time
 	this.save_stories = function(_stories) {
 		var stories = (_stories.constructor === Array) ? _stories : [_stories];
 		var i, mod = [], new_ones = [];
@@ -200,6 +161,39 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
+	/********** pages **********/
+	this.read_page = function(story_id, page_id) {
+		return this.read_rsc.get({story: story_id, page: page_id}).$promise.then(
+			// success
+			function(payload) {
+				console.log("pages service read_page success, returned: ", payload);
+				
+				// if we found a page, unpack the data
+				if (payload.page_found) {
+					var str_option_ids = [];
+					payload.page.option_ids.forEach(function(o) {
+						console.log("o: ", o);
+						srv.create_loaded_option(o);
+						str_option_ids.push(o._id);
+					});
+					payload.page.option_ids = str_option_ids;
+					var page = srv.create_loaded_page(payload.page);
+					return {page_found: true, sought_first: payload.sought_first, page: page};
+				}
+				else {
+					return {page_found: false, sought_first: payload.sought_first, page: null};
+				}
+				
+				//return payload;
+			},
+			// fail
+			function(err) {
+				console.log("pages service read_page failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
 	this.get_page_descendants = function(page_id) {
 		console.log("get_page_descendants called with: ", page_id);
 		return $http.get("/get_descendants/page/" + page_id).then(
@@ -214,57 +208,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 				return $q.reject(err);
 			}
 		);
-	};
-	
-	this.get_option_descendants = function(option_id) {
-		return $http.get("/get_descendants/option/" + option_id).then(
-			// success
-			function(payload) {
-				console.log("get_option_descendants success, got: ", payload);
-				return payload.data.results;
-			}, 
-			// fail
-			function(err) {
-				console.log("get_option_descendants failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
-	
-	this.tree_rsc = $resource( 	"/trees/:root_id"
-								, {root_id: "@root_id"}
-								);
-	
-	this.clear_data = function() {
-		console.log("clearing pages data");
-		this.pages = [];
-		this.root_page = null;
-		this.options = [];
-		this.stories = [];
-	};
-	
-	// note that these are the same, clean up
-	this.prep_for_read = function() {
-		//console.log("clearing pages and options, retaining story");
-		// losing story too
-		this.pages = [];
-		this.root_page = null;
-		this.options = [];
-		this.stories = [];
-	};
-	
-	this.prep_for_branch_edit = function() {
-		this.pages = [];
-		this.root_page = null;
-		this.options = [];
-		this.stories = [];
-	};
-	
-	this.clear_data = function() {
-		this.pages = [];
-		this.root_page = null;
-		this.options = [];
-		this.stories = [];
 	};
 	
 	// using this?
@@ -302,21 +245,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	this.delete_option = function(option_id) {
-		return this.pages_rsc.delete({page: "null", option: option_id}).$promise.then(
-			// success
-			function(payload) {
-				console.log("pages.delete_options success, got: ", payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("pages.delete_option failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
-	
 	this.delete_page = function(page_id) {
 		return this.pages_rsc.delete({page: page_id, option: "null"}).$promise.then(
 			// success
@@ -332,41 +260,202 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		);
 	};
 	
-	// we checked for child pages below, but we're only sending the option to delete
-	// we'll check again and decide what to delete on the server in case there's a front/backend mismatch for some reason
-	// cx_ind is a boolean, if true then children are present and 
-	// we'll need to reload whole tree after delete is finished
-	this.xdelete_option = function(opt, cx_ind) {
-		console.log("delete_option called");
-		// only sending one option at a time
-		var send_obj = {page: "hi", option: opt._id};
+	// given a story get all its pages/options
+	this.load_pages_for_story = function(story) {
+		var story_id = story._id;
 		
-		// no need for this... do it on backend
-		function clean_up_parent(payload) {
-			console.log("got this: ", payload);
-			// now that option and its children are deleted on backend, remove the deleted option's id
-			// from parent page's option_ids array
-			var parent_page = opt.get_parent_page(), i;
-			for (i = 0; i < parent_page.option_ids.length; i++) {
-				if (opt._id === parent_page.option_ids[i]) {
-					parent_page.option_ids.splice(i, 1);
-				}
-			}
-		}
-		
-		return this.rsc.delete(send_obj).$promise.then(
+		return this.pages_rsc.get({story: story_id}).$promise.then(
 			// success
 			function(payload) {
-				console.log("delete option success");
+				console.log("load_pages_for_story in pages service returned: ", payload);
+				
+				var loaded_pages = payload.results.pages;
+				var i, init_obj;
+				
+				// returns true (received pages) or false (did not receive any pages), check for false here
+				if (! loaded_pages.length) {
+					return false;
+				}
+				
+				
+				loaded_pages.forEach(function(p) {
+					var str_option_ids = []
+					p.option_ids.forEach(function(o) {
+						srv.create_loaded_option(o);
+						str_option_ids.push(o._id);
+					});
+					p.option_ids = str_option_ids;
+					srv.create_loaded_page(p);
+				});
+				
+				srv.refresh_sorted_page_list();
+				
+				return true;
+				
+			},
+			// fail
+			function(err) {
+				console.log("load_pages_for_story in pages service failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
+	// only page/option save function, inserts and updates
+	this.save_all = function() {
+		var send_obj = {}, to_save = [], to_update = [];
+		// split all our pages into to_save and to_update, create backend save objects
+		this.pages.forEach(function(p) {
+			if (p.is_new) {
+				to_save.push(page_for_save(p));
+			}
+			else if (p.is_modified()) {
+				to_update.push(page_for_save(p));
+			}
+		});
+		
+		function page_for_save(p) {
+			var ret = {
+				_id: p._id
+				, short_id: p.short_id
+				, ancestor_path: p.ancestor_path
+				, source_option: p.source_option
+				, _title: p._title
+				, _text: p._text
+				, first: p.first
+				, story_id: p.story_id
+				
+				, is_new: p.is_new
+				, modified: p.modified
+			};
+			
+			// handle options -- only include new or modified options
+			ret.option_ids = [];
+			p.option_ids.forEach(function(o) {
+				var opt = srv.get_option_from_id(o);
+				if (opt.is_new || opt.modified) {
+					ret.option_ids.push(option_for_save(opt));
+				}
+			});
+			
+			return ret;
+		}
+		
+		function option_for_save(o) {
+			var ret = {
+				_id: o._id
+				, _text: o._text
+				, _sort_order: o._sort_order
+				, page_id: o.page_id
+				, target_page: o.target_page
+				, story_id: o.story_id
+				
+				, is_new: o.is_new
+				, modified: o.modified
+			};
+			
+			return ret;
+		}
+		
+		send_obj = {pages: {to_save: to_save, to_update: to_update}};
+		
+		
+		// to use on success
+		function demodify(itm) {
+			itm.is_new = false;
+			itm.modified = false;
+		}
+		
+		// send to server
+		return this.pages_rsc.save(send_obj).$promise.then(
+			// success
+			function(payload) {
+				console.log("save_all success");
 				console.log(payload);
+				send_obj.pages.to_save.map(demodify);
+				send_obj.pages.to_update.map(demodify);
+				return payload;
+			},
+			// fail
+			function(err) {
+				console.log("save_all in pages service failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
+	/********** options **********/
+	this.get_option_descendants = function(option_id) {
+		return $http.get("/get_descendants/option/" + option_id).then(
+			// success
+			function(payload) {
+				console.log("get_option_descendants success, got: ", payload);
+				return payload.data.results;
+			}, 
+			// fail
+			function(err) {
+				console.log("get_option_descendants failed with: ", err);
+				return $q.reject(err);
+			}
+		);
+	};
+	
+	this.delete_option = function(option_id) {
+		return this.pages_rsc.delete({page: "null", option: option_id}).$promise.then(
+			// success
+			function(payload) {
+				console.log("pages.delete_options success, got: ", payload);
 				return payload;
 			},
 			// fail
 			function(err) {
 				console.log("pages.delete_option failed with: ", err);
-				return err;
+				return $q.reject(err);
 			}
 		);
+	};
+	
+	/********** end back end data calls **********/
+	
+	this.clear_data = function() {
+		this.pages = [];
+		this.root_page = null;
+		this.options = [];
+		this.stories = [];
+	};
+	
+	this.clear_data_keep_story = function() {
+		this.pages = [];
+		this.root_page = null;
+		this.options = [];
+	};
+	
+	// note that these are the same, clean up
+	this.prep_for_read = function() {
+		this.pages = [];
+		this.root_page = null;
+		this.options = [];
+		this.stories = [];
+	};
+	
+	this.prep_for_branch_edit = function() {
+		this.pages = [];
+		this.root_page = null;
+		this.options = [];
+		this.stories = [];
+	};
+	
+	this.find_story = function(id) {
+		if (!id) {
+			return;
+		}
+		var story;
+		this.stories.forEach(function(s) {
+			if (s._id === id) {
+				story = s;
+			}
+		});
+		return story || null;
 	};
 	
 	this.create_loaded_page = function(loaded) {
@@ -405,6 +494,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		init_obj._id = loaded._id;
 		init_obj.is_new = false;
 		init_obj._text = loaded._text;
+		init_obj._sort_order = loaded._sort_order;
 		init_obj.page_id = loaded.page_id;
 		init_obj.story_id = loaded.story_id;
 		init_obj.target_page = loaded.target_page;
@@ -419,150 +509,13 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return option;
 	};
 	
-	this.load_pages_for_story = function(story) {
-		var story_id = story._id;
-		
-		return this.pages_rsc.get({story: story_id}).$promise.then(
-			// success
-			function(payload) {
-				console.log("load_pages_for_story in pages service returned: ", payload);
-				
-				var loaded_pages = payload.results.pages;
-				var loaded_options = payload.results.options;
-				var i, init_obj;
-				
-				// returns true (received pages) or false (did not receive any pages), check for false here
-				if (! loaded_pages.length) {
-					return false;
-				}
-				
-				// build our pages
-				for (i = 0; i < loaded_pages.length; i++) {
-					srv.create_loaded_page(loaded_pages[i]);
-				}
-				
-				// now options
-				for (i = 0; i < loaded_options.length; i++) {
-					srv.create_loaded_option(loaded_options[i]);
-				}
-				
-				srv.refresh_sorted_page_list();
-				
-				return true;
-				
-			},
-			// fail
-			function(err) {
-				console.log("load_pages_for_story in pages service failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	}
-	
-	this.save_page = function(_pages) {
-		console.log("save_page called");
-		console.log("_pages: ", _pages);
-		var pages = (_pages.constructor === Array) ? _pages : [_pages];
-		console.log("pages: ", pages);
-		var i, options = [];
-		for (i = 0; i < pages.length; i++) {
-			options = options.concat(pages[i].get_options());
-		}
-		
-		console.log("options: ", options);
-		
-		// fix here for multiple pages
-		var send_obj = {pages: pages, options: options};
-		return this.pages_rsc.save(send_obj).$promise.then(
-			// success
-			function(payload) {
-				console.log("save page success");
-				console.log(payload);
-				return payload;
-			},
-			// fail
-			function(payload) {
-				console.log("save page fail");
-				console.log(payload);
-				return payload;
-			}
-		);
+	this.create_loaded_story = function(loaded) {
+		// double check that this works with .my_story
+		var story = this.Story(loaded); // just for stories, this works
+		this.stories.push(story); 
+		return story;
 	};
 	
-	this.update_page = function(_pages) {
-		console.log("update_page called");
-		var pages = (_pages.constructor === Array) ? _pages : [_pages];
-		console.log("pages: ", pages);
-		var i, options = [];
-		for (i = 0; i < pages.length; i++) {
-			options = options.concat(pages[i].get_options());
-		}
-		
-		var send_obj = {pages: pages, options: options};
-		return this.pages_rsc.update(send_obj).$promise.then(
-			// success
-			function(payload) {
-				console.log("update_page success");
-				console.log(payload);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("update_page failed with ", err);
-				$q.reject(err);
-			}
-		);
-	};
-	
-	this.save_all = function() {
-		var i, send_obj = {}, p_to_save = [], p_to_update = [], o_to_save = [], o_to_update = [];
-		// split all our pages into to_save/to_update
-		for (i = 0; i < this.pages.length; i++) {
-			if (this.pages[i].is_new) {
-				p_to_save.push(this.pages[i]);
-			}
-			else if (this.pages[i].modified) {
-				p_to_update.push(this.pages[i]);
-			}
-		}
-		
-		// same deal with options
-		for (i = 0; i < this.options.length; i++) {
-			if (this.options[i].is_new) {
-				o_to_save.push(this.options[i]);
-			}
-			else if (this.options[i].modified) {
-				o_to_update.push(this.options[i]);
-			}
-		}
-		
-		send_obj = {pages: {to_save: p_to_save, to_update: p_to_update}, options: {to_save: o_to_save, to_update: o_to_update}};
-		
-		// to use on success
-		function demodify(itm) {
-			itm.is_new = false;
-			itm.modified = false;
-		}
-		
-		// send to server
-		return this.pages_rsc.save(send_obj).$promise.then(
-			// success
-			function(payload) {
-				console.log("save_all success");
-				console.log(payload);
-				send_obj.pages.to_save.map(demodify);
-				send_obj.pages.to_update.map(demodify);
-				send_obj.options.to_save.map(demodify);
-				send_obj.options.to_update.map(demodify);
-				return payload;
-			},
-			// fail
-			function(err) {
-				console.log("save_all in pages service failed with: ", err);
-				return $q.reject(err);
-			}
-		);
-	};
 	this.create_new_page = function(init) {
 		init.is_new = true;
 		var page = new this.Page(init);
@@ -573,6 +526,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return page;
 	};
 	
+	/* types */
 	this.Story = function(init) {
 		var that = this;
 		this.type = "story";
@@ -585,8 +539,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		this._public_view = init._public_view || false; // default these to false?
 		this._public_edit = init._public_edit || false; // default these to false?
 		
-		//this._id = init.hasOwnProperty("_id") ? init._id : srv.id.gen_id();
-		this.page_ids = init.page_ids || []; // do I need this, or am I good with pages having a story_id field?
+		this.page_ids = init.page_ids || []; // not using this...
 		if (this.is_new) {
 			this.modified = true;
 		}
@@ -664,9 +617,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return this._description ? this._description : "...";
 	};
 	
-	/*this.Story.prototype.created_by = function(user_id) {
-		if (this.
-	};*/
 	
 	// created_by should already be on init obj
 	this.create_new_story = function(init) {
@@ -677,8 +627,9 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return story;
 	};
 	
+	
+	
 	this.Page = function(init) {
-		//console.log("init: ", init);
 		var that = this;
 		this.type = "page";
 		this.first = init.hasOwnProperty("first") ? init.first : false;
@@ -855,13 +806,10 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	};
 	
 	this.Page.prototype.add_option = function() {
-		var init = {page_id: this._id, is_new: true, story_id: this.story_id};
+		var init = {page_id: this._id, is_new: true, story_id: this.story_id, _sort_order: this.option_ids.length + 1};
 		var option = new srv.Option(init);
-		//this.option_ids.push(option._id); // now added in Option's callback from gen_id server call
 		srv.options.push(option);
 		
-		// no, cause we want to be able to define option without actually spawning target
-		//option.spawn_target_page();
 		this.modified = true;
 	};
 	
@@ -870,13 +818,27 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		for (i = 0; i < this.option_ids.length; i++) {
 			opt = srv.get_option_from_id(this.option_ids[i]);
 			if (opt) {
-				// wtf am i doing here
-				//options.push(srv.get_option_from_id(this.option_ids[i]));
 				options.push(opt);
 			}
 		}
-		//console.log("got options: ", options);
 		return options;
+	};
+	
+	// .modified boolean flag on Page object indicates whether the page itself has been modified, 
+	// but this guy here will check if the page contains options that have been modified as well.
+	// used on front-end to indicate if there is data on the page to be saved.
+	this.Page.prototype.is_modified = function() {
+		if (this.modified) {
+			return true;
+		}
+		var options = this.get_options(), mod = false;
+		options.forEach(function(o) {
+			if (o.modified) {
+				mod = true;
+			}
+		});
+		
+		return mod;
 	};
 	
 	this.Page.prototype.get_parent_page = function() {
@@ -885,10 +847,8 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		}
 		var source_option = srv.get_option_from_id(this.source_option);
 		if (! source_option) {
-			//console.log("couldn't find source option for " + this.title);
 			return null;
 		}
-		//console.log("found source option");
 		var parent_page = source_option.get_parent_page();
 		return parent_page;
 	};
@@ -903,10 +863,6 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 				cx.push(page);
 			}
 		}
-		//console.log("child_pages: ", cx);
-		//console.log("get_child_pages returning: ", (cx.length > 0) ? cx : null);
-		//return (cx.length > 0) ? cx : null;
-		//return (cx.length > 0) ? cx : [];
 		return cx;
 	};
 	
@@ -977,10 +933,9 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		this.type = "option";
 		this.is_new = init.hasOwnProperty("is_new") ? init.is_new : false;
 		this._text = init.hasOwnProperty("_text") ? init._text : null;
-		//this._id = init.hasOwnProperty("_id") ? init._id : srv.id.new_id();
+		this._sort_order = init.hasOwnProperty("_sort_order") ? init._sort_order : 0;
 		this.page_id = init.page_id;
 		this.story_id = init.story_id || null; 
-		//this.target_page = init.hasOwnProperty("target_page") ? init.target_page : srv.id.new_id();
 		
 		// handle new id for target page
 		this.target_page = null;
@@ -1028,8 +983,23 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		if (val != undefined) {
 			this._text = val;
 			this.modified = true;
+			// we need the parent page to be flagged as modified on the front-end, 
+			// but actually setting the flag will cause the parent page to get re-saved
+			// and overwritten unnecessarily. think about using a getter on the Page
+			// object to check child options, using getter on front-end while leaving
+			// flag alone and accurate
+			//this.get_parent_page().modified = true;
 		}
 		return this._text;
+	};
+	
+	this.Option.prototype.sort_order = function(val) {
+		if (val != undefined) {
+			this._sort_order = val;
+			this.modified = true;
+			//this.get_parent_page().modified = true;
+		}
+		return this._sort_order;
 	};
 	
 	this.Option.prototype.spawn_target_page = function() {
@@ -1090,6 +1060,44 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		cx = cx.concat(target_page);
 		return cx;
 	};
+	
+	function sort_order_sort(a, b) {
+		if (a._sort_order < b._sort_order) {
+			return -1;
+		}
+		if (a._sort_order > b._sort_order) {
+			return 1;
+		}
+		return 0;
+	}
+	
+	this.Option.prototype.sort_up = function() {
+		// stop if this is already the first option, _sort_order === 1
+		if (this._sort_order === 1) {
+			return;
+		}
+		var opts = this.get_parent_page().get_options().sort(sort_order_sort);
+		var targ = opts[this._sort_order - 1 - 1];
+		console.log("this one: ", this);
+		console.log("targ: ", targ);
+		targ._sort_order += 1;
+		this._sort_order -= 1;
+		targ.modified = true;
+		this.modified = true;
+	};
+	
+	this.Option.prototype.sort_down = function() {
+		var opts = this.get_parent_page().get_options().sort(sort_order_sort);
+		// stop if this is already the last option, _sort_order === opts.length
+		if (this._sort_order === opts.length) {
+			return;
+		}
+		var targ = opts[this._sort_order - 1 + 1];
+		targ._sort_order -= 1;
+		this._sort_order += 1;
+		targ.modified = true;
+		this.modified = true;
+	}; 
 	
 	this.get_option_from_id = function(_id) {
 		var i; 

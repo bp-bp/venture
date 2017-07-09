@@ -1,5 +1,5 @@
 // stories
-function venture_story_ctrl(users, pages, current, $location) {
+function venture_story_ctrl(users, pages, current, $location, $routeParams) {
 	var self = this;
 	self.users = users;
 	self.pages = pages;
@@ -16,7 +16,7 @@ function venture_story_ctrl(users, pages, current, $location) {
 	
 	// some ui stuff
 	self.message = null;
-	self.story_mode = "view"; // choices are "edit" or "view", both apply to editor panel in 'my stories' mode
+	//self.story_mode = "view"; // choices are "edit" or "view", both apply to editor panel in 'my stories' mode
 	
 	// display text for _public_edit and _public_view properties
 	self.public_edit_display = function(bool) {
@@ -42,7 +42,6 @@ function venture_story_ctrl(users, pages, current, $location) {
 		if (self.users.logged_in()) {
 			var new_story = self.pages.create_new_story({created_by: self.users.user._id});
 			self.current.story = new_story;
-			self.story_mode = "edit";
 		}
 	};
 	
@@ -54,7 +53,6 @@ function venture_story_ctrl(users, pages, current, $location) {
 		self.pages.save_stories(to_save).then(
 			// success
 			function() {
-				self.story_mode = "view";
 			},
 			// fail
 			function(err) {
@@ -63,49 +61,52 @@ function venture_story_ctrl(users, pages, current, $location) {
 		);
 	};
 	
-	
-	
 	self.edit_pages = function() {
 		$location.path("/pages");
 	};
 	
-	self.read_story = function(story) {
-		var id = story || self.current.story._id;
-		$location.path("/read").search({story: id});
+	self.select_story = function(story) {
+		self.current.story = story;
+		$location.search({story: self.current.story._id});
 	};
 	
-	// choices are 'edit' or 'view'
-	self.set_story_mode = function(mode) {
-		self.story_mode = mode;
+	self.read_story = function(story) {
+		var id = story._id || self.current.story._id;
+		$location.path("/read").search({story: id});
 	};
 	
 	self.clear_current = function() {
 		self.current.story = null;
 	};
 	
-	self.exit_edit = function() {
-		self.story_mode = "view";
-	};
-	
 	// init and load
+	// currently not working... committed to reloading everything when switching pages, just load all and set current story to story specified
+	var param_story = $routeParams.story || null;
 	self.pages.clear_data();
 	self.current.story = null;
-	self.pages.get_all_stories(self.user_mode);
-	
-	console.log("venture_story_ctrl called");
+	self.pages.get_all_stories(self.user_mode).then(
+		// success
+		function() {
+			// set current story if it was specified in query
+			if (param_story) {
+				self.current.story = self.pages.find_story(param_story);
+			}
+		}
+	);
 }
-angular.module("app").controller("venture_story_ctrl", ["users", "pages", "current", "$location", venture_story_ctrl]);
+// for browsing all public stories
+angular.module("app").controller("venture_story_ctrl", ["users", "pages", "current", "$location", "$routeParams", venture_story_ctrl]);
 angular.module("app").component("ventureStory", {
 	bindings: {}
-	, controller: ["users", "pages", "current", "$location", venture_story_ctrl]
+	, controller: ["users", "pages", "current", "$location", "$routeParams", venture_story_ctrl]
 	, controllerAs: "v_story"
 	, templateUrl: "html/templates/venture_story.html"
 });
 
-// try this
+// for editing user's own stories
 angular.module("app").component("ventureStoryUser", {
 	bindings: {}
-	, controller: ["users", "pages", "current", "$location", venture_story_ctrl]
+	, controller: ["users", "pages", "current", "$location", "$routeParams", venture_story_ctrl]
 	, controllerAs: "v_story"
 	, templateUrl: "html/templates/venture_story_user.html"
 });

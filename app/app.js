@@ -2,7 +2,6 @@
 
 const express = require("express");
 const mongoose = require("mongoose");
-//mongoose.Promise = require("bluebird");
 const passport = require("passport");
 const flash = require("connect-flash");
 const morgan = require("morgan");
@@ -11,9 +10,6 @@ const bodyParser = require("body-parser");
 const session = require("express-session");
 const bcrypt = require("bcrypt-nodejs");
 const uuid = require("node-uuid");
-//const Q = require("q");
-
-
 
 // set up app
 const app = express();
@@ -39,7 +35,7 @@ app.use(bodyParser.json());
 // passport setup
 app.use(session({	secret: "youllneverguessthesecret"
 				 	, maxAge: 900000 // 15 minutes
-					, resave: false // docs said I probably want this
+					, resave: false 
 					, rolling: true // stay logged in with activity
 					, saveUninitialized: false // probably want this too
 				}));
