@@ -6,112 +6,142 @@ function venture_read_ctrl(users, pages, current, $q, $location, $routeParams, $
 	self.current = current;
 	self.$route = $route;
 	
+	$rootScope.$on("$routeUpdate", function(e) {
+		console.log("$routeParams.page: ", $routeParams.page);
+		console.log("self.this_page: ", self.this_page);
+		if (self.this_page && $routeParams.page != self.this_page) {
+			console.log("happening!");
+			self.pages.prep_for_read();
+			self.current.init();
+			self.load_from_params();
+			//$route.reload();
+		}
+		if (! $routeParams.page) {
+			console.log("doing this now");
+			$route.reload();
+		}
+	});
+	
 	//********** handle our parameters **********//
-	var this_story, this_page, source_option, need_story = false;
+	//var this_story, this_page, source_option, need_story = false;
+	self.this_story = null;
+	self.this_page = null;
+	self.source_option = null;
+	self.need_story = false;
 	
-	//*** story ***//
-	// if there's a story id in the url bar
-	if ($route.current.params.story) {
-		this_story = $route.current.params.story
-	}
-	// otherwise look to see if there's a current story loaded
-	else {
-		// set it to the id of the current story
-		if (self.current.story) {
-			$location.search({story: self.current.story._id});
-			this_story = self.current.story._id;
+	self.init_params = function() {
+		//*** story ***//
+		// if there's a story id in the url bar
+		if ($routeParams.story) {
+			self.this_story = $routeParams.story;
 		}
-		// if there's no current.story, AND there's no story in the url, send user back to the stories list
+		// otherwise look to see if there's a current story loaded
 		else {
-			console.log("redirecting");
-			$location.path("/stories");
-			return;
+			// set it to the id of the current story
+			if (self.current.story) {
+				$location.search({story: self.current.story._id});
+				self.this_story = self.current.story._id;
+			}
+			// if there's no current.story, AND there's no story in the url, send user back to the stories list
+			else {
+				console.log("redirecting");
+				$location.path("/stories");
+				return;
+			}
 		}
-	}
-	// finally check to see if our story is loaded
-	if (! self.current.story) {
-		need_story = true;
-	}
+		// finally check to see if our story is loaded
+		if (! self.current.story) {
+			//console.log("need story");
+			self.need_story = true;
+		}
+
+		//*** page ***//
+		// if there's a page id in the url
+		if ($routeParams.page) {
+			self.this_page = $routeParams.page;
+		}
+		// otherwise self.this_page is null, we'll load the first page from the current story
+		else {
+			self.this_page = null;
+		}
+
+		//*** option ***//
+		// param_option only gets set one way -- grab it from routeParams if it exists
+		self.source_option = $routeParams.option || null;
+	};
 	
-	//*** page ***//
-	// if there's a page id in the url
-	if ($route.current.params.page) {
-		this_page = $route.current.params.page;
-	}
-	// otherwise this_page is null, we'll load the first page from the current story
-	else {
-		this_page = null;
-	}
+	self.load_from_params = function() {
+		//********** load everything up **********//
 	
-	//*** option ***//
-	// param_option only gets set one way -- grab it from routeParams if it exists
-	source_option = $route.current.params.option || null;
-	
-	//********** load everything up **********//
-	
-	// first clear everything and load fresh -- is this necessary?
-	//self.pages.prep_for_read();
-	
-	var story_prom;
-	
-	// if there's no story loaded, set up to get one
-	if (need_story) {
-		story_prom = function() {
-			return self.pages.get_story(this_story).then(
-				function(story) {
-					self.current.story = story;
-					return story;
-				}
-			).catch(
+		// first clear everything and load fresh -- is this necessary?
+		//self.pages.prep_for_read();
+
+		var story_prom;
+
+		// if there's no story loaded, set up to get one
+		if (self.need_story) {
+			story_prom = function() {
+				return self.pages.get_story(self.this_story).then(
+					function(story) {
+						//console.log("setting current story");
+						self.current.story = story;
+						return story;
+					}
+				).catch(
+					function(err) {
+						console.log("error from story_prom: ", err);
+						return $q.reject(err);
+					}
+				);
+			};
+		}
+		else {
+			story_prom = function() {
+				return $q.when(self.current.story);
+			};
+		}
+
+		// now the page we're reading
+		var page_prom = function() {
+			//console.log("self.current.story: ", self.current.story);
+			return self.pages.read_page(self.current.story._id, self.this_page).catch(
 				function(err) {
-					console.log("error from story_prom: ", err);
+					console.log("error from page_prom: ", err);
 					return $q.reject(err);
 				}
 			);
 		};
-	}
-	else {
-		story_prom = function() {
-			return $q.when(self.current.story);
-		};
-	}
-	
-	// now the page we're reading
-	var page_prom = function() {
-		console.log("self.current.story: ", self.current.story);
-		return self.pages.read_page(self.current.story._id, this_page).catch(
+
+		// now make it go
+		story_prom().then(page_prom).then(
+			function(payload) {
+				// if we found a page
+				if (payload.page_found) {
+					self.current.page = payload.page;
+					// make sure our params are all set
+					console.log("about to happen");
+					$location.search({story: self.current.story._id, page: payload.page._id, option: payload.page.source_option});
+					
+				}
+				// if we were trying to find the first page in the story but found nothing, the story is empty
+				else if (payload.sought_first) {
+					self.empty_story = true;
+				}
+				// otherwise we found no page on a legit branch, ask if the user wants to branch edit
+				else {
+					// insert stuff here
+				}
+			}
+		).catch(
 			function(err) {
-				console.log("error from page_prom: ", err);
-				return $q.reject(err);
+				console.log("error loading data for read_page: ", err);
 			}
 		);
 	};
 	
-	// now make it go
-	story_prom().then(page_prom).then(
-		function(payload) {
-			console.log("here");
-			console.log(payload);
-			// if we found a page
-			if (payload.page_found) {
-				self.current.page = payload.page;
-				// make sure our params are all set
-				$location.search({story: self.current.story._id, page: payload.page._id, option: payload.page.source_option});
-			}
-			// if we were trying to find the first page in the story but found nothing, the story is empty
-			else if (payload.sought_first) {
-				self.empty_story = true;
-			}
-			// otherwise we found no page on a legit branch, ask if the user wants to branch edit
-			else {
-				// insert stuff here
-			}
-		}
-	).catch(
-		function(err) {
-			console.log("error loading data for read_page: ", err);
-		}
-	);
+	self.init_params();
+	self.load_from_params();
+	
 	
 	self.turn_page = function(page_id, option_id) {
 		console.log("turn_page called with page_id: ", page_id, "and option_id: ", option_id);

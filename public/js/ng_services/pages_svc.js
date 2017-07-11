@@ -87,13 +87,15 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	/********** stories **********/
 	// gets one story, bare, without pages
 	this.get_story = function(story_id) {
-		console.log("get_story called with: ", story_id);
+		//console.log("get_story called with: ", story_id);
 		return this.stories_rsc.get({story: story_id}).$promise.then(
 			// sucess
 			function(payload) {
-				console.log("get_story success");
-				console.log("got: ", payload);
-				return srv.create_loaded_story(payload.story);
+				//console.log("get_story success");
+				//console.log("got: ", payload);
+				var str = srv.create_loaded_story(payload.story);
+				//console.log("story: ", str);
+				return str; //srv.create_loaded_story(payload.story);
 			},
 			// fail
 			function(err) {
@@ -166,13 +168,10 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 		return this.read_rsc.get({story: story_id, page: page_id}).$promise.then(
 			// success
 			function(payload) {
-				console.log("pages service read_page success, returned: ", payload);
-				
 				// if we found a page, unpack the data
 				if (payload.page_found) {
 					var str_option_ids = [];
 					payload.page.option_ids.forEach(function(o) {
-						console.log("o: ", o);
 						srv.create_loaded_option(o);
 						str_option_ids.push(o._id);
 					});
@@ -511,7 +510,7 @@ angular.module("app").service("pages", ["$resource", "$q", "$http", "id", functi
 	
 	this.create_loaded_story = function(loaded) {
 		// double check that this works with .my_story
-		var story = this.Story(loaded); // just for stories, this works
+		var story = new this.Story(loaded); // just for stories, this works
 		this.stories.push(story); 
 		return story;
 	};

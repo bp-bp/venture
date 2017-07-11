@@ -17,7 +17,7 @@ angular.module("app").service("users", ["$resource", "id", "$q", function($resou
 		return this.rsc.check_auth().$promise.then(
 			// success
 			function(payload) {
-				console.log("check_auth success payload: ", payload);
+				//console.log("check_auth success payload: ", payload);
 				var auth_user = {};
 				if (payload.auth_user) {
 					auth_user.username = payload.auth_user.local.username;
@@ -31,7 +31,7 @@ angular.module("app").service("users", ["$resource", "id", "$q", function($resou
 			},
 			// fail
 			function(payload) {
-				console.log("check_auth fail -- not logged in");
+				//console.log("check_auth fail -- not logged in");
 				return $q.reject(payload);
 			}
 		);
@@ -159,7 +159,7 @@ angular.module("app").service("users", ["$resource", "id", "$q", function($resou
 	};
 	
 	this.user = new this.User({});//null;
-	console.log("this.user: ", this.user);
+	//console.log("this.user: ", this.user);
 	//this.check_auth();
 	
 }]);

@@ -1,7 +1,14 @@
 angular.module("app").service("current", ["$interval", function($interval) {
-	this.story = null;
-	this.page = null;
-	this.branch_edit_option_lock = null; // promise returned from $interval service
+	//this.story = null;
+	//this.page = null;
+	//this.branch_edit_option_lock = null; // promise returned from $interval service
+	
+	this.init = function() {
+		this.story = null;
+		this.page = null;
+		this.branch_edit_option_lock = null; // promise returned from $interval service
+	};
+	this.init();
 	
 	// self explanatory -- stops the $interval that renews a backend branch edit lock
 	this.stop_renewing_locks = function() {
