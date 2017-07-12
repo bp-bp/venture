@@ -127,7 +127,6 @@ function venture_read_ctrl(users, pages, current, $q, $location, $state, $rootSc
 		console.log("turn_page called with page_id: ", page_id, "and option_id: ", option_id);
 		if (page_id) {
 			$location.search({story: self.current.story._id, page: page_id, option: option_id});
-			//self.$route.reload(); // replace
 		}
 		else {
 			console.log("no page_id in turn_page");
