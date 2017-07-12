@@ -1,9 +1,11 @@
 // stories
-function venture_story_ctrl(users, pages, current, $location, $routeParams) {
+function venture_story_ctrl(users, pages, current, $location, $state) {
 	var self = this;
 	self.users = users;
 	self.pages = pages;
 	self.current = current;
+	
+	console.log("$state: ", $state);
 	
 	// detect whether we're in "all stories" or "my stories" mode
 	self.user_mode = null;
@@ -81,7 +83,7 @@ function venture_story_ctrl(users, pages, current, $location, $routeParams) {
 	
 	// init and load
 	// currently not working... committed to reloading everything when switching pages, just load all and set current story to story specified
-	var param_story = $routeParams.story || null;
+	var param_story = $state.params.story || null;
 	self.pages.clear_data();
 	self.current.story = null;
 	self.pages.get_all_stories(self.user_mode).then(
@@ -95,10 +97,10 @@ function venture_story_ctrl(users, pages, current, $location, $routeParams) {
 	);
 }
 // for browsing all public stories
-angular.module("app").controller("venture_story_ctrl", ["users", "pages", "current", "$location", "$routeParams", venture_story_ctrl]);
+angular.module("app").controller("venture_story_ctrl", ["users", "pages", "current", "$location", "$state", venture_story_ctrl]);
 angular.module("app").component("ventureStory", {
 	bindings: {}
-	, controller: ["users", "pages", "current", "$location", "$routeParams", venture_story_ctrl]
+	, controller: ["users", "pages", "current", "$location", "$state", venture_story_ctrl]
 	, controllerAs: "v_story"
 	, templateUrl: "html/templates/venture_story.html"
 });
@@ -106,7 +108,7 @@ angular.module("app").component("ventureStory", {
 // for editing user's own stories
 angular.module("app").component("ventureStoryUser", {
 	bindings: {}
-	, controller: ["users", "pages", "current", "$location", "$routeParams", venture_story_ctrl]
+	, controller: ["users", "pages", "current", "$location", "$state", venture_story_ctrl]
 	, controllerAs: "v_story"
 	, templateUrl: "html/templates/venture_story_user.html"
 });

@@ -1,5 +1,5 @@
 // pages
-function venture_page_ctrl(users, pages, current, $location, $routeParams, $interval) {
+function venture_page_ctrl(users, pages, current, $location, $state, $interval) {
 	var self = this;
 	self.users = users;
 	self.pages = pages;
@@ -210,12 +210,12 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 	
 	// do our initial setup
 	// if we've launched this as a branch edit rather than whole-story edit
-	if ($routeParams.mode && $routeParams.mode === "branch_edit" && $routeParams.new_page && $routeParams.option) {
+	if ($state.params.mode && $state.params.mode === "branch_edit" && $state.params.new_page && $state.params.option) {
 		self.mode = "branch_edit";
-		self.branch_edit_option = $routeParams.option;
-		self.branch_edit_new_page = $routeParams.new_page;
-		self.branch_edit_source_page = $routeParams.source_page;
-		self.branch_edit_parent_ancestor_path = $routeParams.parent_ancestor_path;
+		self.branch_edit_option = $state.params.option;
+		self.branch_edit_new_page = $state.params.new_page;
+		self.branch_edit_source_page = $state.params.source_page;
+		self.branch_edit_parent_ancestor_path = $state.params.parent_ancestor_path;
 		// so we'll keep our option locked for editing -- delay set to 5 sec for testing
 		// temporarily commented out!!!!
 		//self.current.branch_edit_option_lock = $interval(self.renew_branch_edit_option_lock, 5000);
@@ -228,10 +228,10 @@ function venture_page_ctrl(users, pages, current, $location, $routeParams, $inte
 		self.populate_pages();
 	}
 }
-angular.module("app").controller("venture_page_ctrl", ["users", "pages", "current", "$location", "$routeParams", "$interval", venture_page_ctrl]);
+angular.module("app").controller("venture_page_ctrl", ["users", "pages", "current", "$location", "$state", "$interval", venture_page_ctrl]);
 angular.module("app").component("venturePages", {
 	bindings: {}
-	, controller: ["users", "pages", "current", "$location", "$routeParams", "$interval", venture_page_ctrl]
+	, controller: ["users", "pages", "current", "$location", "$state", "$interval", venture_page_ctrl]
 	, controllerAs: "v_page"
 	, templateUrl: "html/templates/venture_page.html"
 });

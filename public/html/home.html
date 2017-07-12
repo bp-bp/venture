@@ -1,12 +1,13 @@
 <html>
 <head>
-	<meta charset="utf-8">
+	<!--<meta charset="utf-8">-->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	
 	<script type = "text/javascript" src = "../js/angular.min.js"></script>
 	<script type = "text/javascript" src = "../js/angular-resource.min.js"></script>
-	<script type = "text/javascript" src = "../js/angular-route.min.js"></script>
+	<!--<script type = "text/javascript" src = "../js/angular-route.min.js"></script>-->
+	<script type = "text/javascript" src = "../js/angular-ui-router.min.js"></script>
 	<script type = "text/javascript" src="https://use.fontawesome.com/a131fa6ff7.js"></script>
 	
 	<script type = "text/javascript" src = "../js/venture.js"></script>
@@ -35,7 +36,8 @@
 		<venture-menu></venture-menu>
 		<!--<venture-login></venture-login>-->
 		<!--<venture-main></venture-main>-->
-		<div ng-view></div>
+		<!--<div ng-view></div>-->
+		<ui-view></ui-view>
 	</div>
 </body>
 </html>

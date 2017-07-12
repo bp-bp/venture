@@ -1,29 +1,11 @@
-function venture_read_ctrl(users, pages, current, $q, $location, $routeParams, $rootScope, $route) {
+function venture_read_ctrl(users, pages, current, $q, $location, $state, $rootScope) {
 	console.log("**********loading read controller**********");
 	var self = this;
 	self.users = users;
 	self.pages = pages;
 	self.current = current;
-	self.$route = $route;
-	
-	$rootScope.$on("$routeUpdate", function(e) {
-		console.log("$routeParams.page: ", $routeParams.page);
-		console.log("self.this_page: ", self.this_page);
-		if (self.this_page && $routeParams.page != self.this_page) {
-			console.log("happening!");
-			self.pages.prep_for_read();
-			self.current.init();
-			self.load_from_params();
-			//$route.reload();
-		}
-		if (! $routeParams.page) {
-			console.log("doing this now");
-			$route.reload();
-		}
-	});
 	
 	//********** handle our parameters **********//
-	//var this_story, this_page, source_option, need_story = false;
 	self.this_story = null;
 	self.this_page = null;
 	self.source_option = null;
@@ -31,9 +13,9 @@ function venture_read_ctrl(users, pages, current, $q, $location, $routeParams, $
 	
 	self.init_params = function() {
 		//*** story ***//
-		// if there's a story id in the url bar
-		if ($routeParams.story) {
-			self.this_story = $routeParams.story;
+		// if there's a story id in the url 
+		if ($state.params.story) {
+			self.this_story = $state.params.story;
 		}
 		// otherwise look to see if there's a current story loaded
 		else {
@@ -51,14 +33,13 @@ function venture_read_ctrl(users, pages, current, $q, $location, $routeParams, $
 		}
 		// finally check to see if our story is loaded
 		if (! self.current.story) {
-			//console.log("need story");
 			self.need_story = true;
 		}
 
 		//*** page ***//
 		// if there's a page id in the url
-		if ($routeParams.page) {
-			self.this_page = $routeParams.page;
+		if ($state.params.page) {
+			self.this_page = $state.params.page;
 		}
 		// otherwise self.this_page is null, we'll load the first page from the current story
 		else {
@@ -67,7 +48,7 @@ function venture_read_ctrl(users, pages, current, $q, $location, $routeParams, $
 
 		//*** option ***//
 		// param_option only gets set one way -- grab it from routeParams if it exists
-		self.source_option = $routeParams.option || null;
+		self.source_option = $state.params.option || null;
 	};
 	
 	self.load_from_params = function() {
@@ -118,8 +99,7 @@ function venture_read_ctrl(users, pages, current, $q, $location, $routeParams, $
 				// if we found a page
 				if (payload.page_found) {
 					self.current.page = payload.page;
-					// make sure our params are all set
-					console.log("about to happen");
+					// make sure our params are all set 
 					$location.search({story: self.current.story._id, page: payload.page._id, option: payload.page.source_option});
 					
 				}
@@ -147,7 +127,7 @@ function venture_read_ctrl(users, pages, current, $q, $location, $routeParams, $
 		console.log("turn_page called with page_id: ", page_id, "and option_id: ", option_id);
 		if (page_id) {
 			$location.search({story: self.current.story._id, page: page_id, option: option_id});
-			self.$route.reload();
+			//self.$route.reload(); // replace
 		}
 		else {
 			console.log("no page_id in turn_page");
@@ -167,12 +147,12 @@ function xventure_read_ctrl(users, pages, current, $q, $location, $rootScope, $r
 	
 	console.log("self.current.story: ", self.current.story);
 	console.log("self.current.page: ", self.current.page);
-	console.log("$routeParams: ", $routeParams.current.params.story, $routeParams.current.params.page);
+	console.log("$state.params: ", $state.params.current.params.story, $state.params.current.params.page);
 	
 	if (	self.current.story 
-			&& self.current.story._id === $routeParams.current.params.story
+			&& self.current.story._id === $state.params.current.params.story
 			&& self.current.page
-			&& self.current.page._id === $routeParams.current.params.page) {
+			&& self.current.page._id === $state.params.current.params.page) {
 		console.log("do nothing!");
 		stop_loading = true;
 	}
@@ -190,7 +170,7 @@ function xventure_read_ctrl(users, pages, current, $q, $location, $rootScope, $r
 		// handle route and reload if necessary
 		var param_story, param_page, param_option;
 		// if there's no story in the url
-		if (! $routeParams.current.params.story) {
+		if (! $state.params.current.params.story) {
 			console.log("no story passed");
 			// if there's no current story either there's nothing we can do here
 			if (! self.current.story) {
@@ -199,24 +179,24 @@ function xventure_read_ctrl(users, pages, current, $q, $location, $rootScope, $r
 			}
 			param_story = self.current.story._id;
 			//$location.search({story: param_story});
-			console.log("$routeParams here is: ", $routeParams);
+			console.log("$state.params here is: ", $state.params);
 		}
 		else {
-			param_story = $routeParams.current.params.story;
+			param_story = $state.params.current.params.story;
 		}
 
 		// now if there's no page in the url, we'll load the first one from the story -- set param_page to null for now
-		if (! $routeParams.current.params.page) {
+		if (! $state.params.current.params.page) {
 			console.log("no page passed");
 			param_page = null;
 		}
 		// otherwise set param_page from the route
 		else {
-			param_page = $routeParams.current.params.page;
+			param_page = $state.params.current.params.page;
 		}
 		
 		// param_option only goes one way -- grab it from routeParams if it exists
-		param_option = $routeParams.current.params.option || null;
+		param_option = $state.params.current.params.option || null;
 
 		// clear everything and load fresh
 		self.pages.prep_for_read();
@@ -255,7 +235,7 @@ function xventure_read_ctrl(users, pages, current, $q, $location, $rootScope, $r
 					self.current.page = page;*/
 					console.log("we got a page");
 					self.current.page = payload.page;
-					$location.search({story: param_story, page: payload.page._id, option: $routeParams.current.params.option});
+					$location.search({story: param_story, page: payload.page._id, option: $state.params.current.params.option});
 				}
 				else if (payload.sought_first) {
 					self.empty_story = true;
@@ -320,10 +300,10 @@ function xventure_read_ctrl(users, pages, current, $q, $location, $rootScope, $r
 		
 	};
 }
-angular.module("app").controller("venture_read_ctrl", ["users", "pages", "current", "$q", "$location", "$routeParams", "$rootScope", "$route", venture_read_ctrl]);
+angular.module("app").controller("venture_read_ctrl", ["users", "pages", "current", "$q", "$location", "$state", "$rootScope", venture_read_ctrl]);
 angular.module("app").component("ventureRead", {
 	bindings: {}
-	, controller: ["users", "pages", "current", "$q", "$location", "$routeParams", "$rootScope", "$route", venture_read_ctrl]
+	, controller: ["users", "pages", "current", "$q", "$location", "$state", "$rootScope", venture_read_ctrl]
 	, controllerAs: "v_read"
 	, templateUrl: "html/templates/venture_read.html"
 });

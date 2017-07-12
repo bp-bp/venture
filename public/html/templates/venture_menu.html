@@ -2,8 +2,11 @@
 	<h2 class = "spacer-bottom">Venture</h2>
 	<nav class = "nav-bar">
 		<a class = "navbar_item" ng-click = "v_menu.echo_data()">echo</a>
-		<a class = "navbar_item" href = "#/stories">stories</a>
-		<a class = "navbar_item" href = "#/stories/user">my stories</a>
+		<!--<a class = "navbar_item" href = "#/stories">stories</a>
+		<a class = "navbar_item" href = "#/stories/user">my stories</a>-->
+		
+		<a class = "navbar_item" ui-sref = "stories">stories</a>
+		<a class = "navbar_item" ui-sref = "my_stories">my stories</a>
 		
 		<!-- one obnoxiously long line to avoid nasty flicker -->
 		<span ng-click = "v_menu.toggle_login_expand()" class = "float-right a">{{v_menu.users.logged_in() ? v_menu.users.user.username : "not logged in"}}<venture-login class = "login-panel-container" ng-if = "v_menu.login_expanded"></venture-login></span>
